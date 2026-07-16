@@ -45,6 +45,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: robotAgent
       objectReference: {fileID: 0}
+    - target: {fileID: 2398567839079389820, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: near clip plane
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rosBridge
+      value: 
+      objectReference: {fileID: 7696283471753021205}
     - target: {fileID: 2934687937321737502, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Constraints
       value: 84
@@ -97,16 +105,51 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7241488674044490131, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.288
+      objectReference: {fileID: 0}
+    - target: {fileID: 7241488674044490131, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.152
+      objectReference: {fileID: 0}
+    - target: {fileID: 7241488674044490131, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.15
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7696283471753021205}
   m_SourcePrefab: {fileID: 100100000, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
 --- !u!4 &1709264521144750882 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4883057006007737980, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
   m_PrefabInstance: {fileID: 6087913965471403358}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4953172232079785222 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+  m_PrefabInstance: {fileID: 6087913965471403358}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7696283471753021205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4953172232079785222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd9b4b1463fd22a42bff926100f7edd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RosBridge
+  cmdVelTopic: /cmd_vel
+  gripperTopic: /cmd_gripper
+  cameraTopic: /cmd_camera_pan
 --- !u!1001 &8526257670425749306
 PrefabInstance:
   m_ObjectHideFlags: 0

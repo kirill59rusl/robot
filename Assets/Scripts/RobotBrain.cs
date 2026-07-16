@@ -24,11 +24,12 @@ public class RobotBrain : Agent
     float previousDistanceToBall;
     float previousGas;
     float previousSteer;
-
+    
     float episodeTimer;
 
     bool hasBall;
 
+    Transform goalCube;
     Transform ball;
 
     // Camera memory
@@ -90,7 +91,7 @@ public class RobotBrain : Agent
         Vector3 spawn =
             mazeGenerator.GetStartPosition();
 
-        spawn.y = 0.04f;
+        spawn.y = 0;
 
         transform.position = spawn;
 
@@ -104,11 +105,15 @@ public class RobotBrain : Agent
         if (obj != null)
         {
             ball = obj.transform;
+            
         }
         else
         {
             Debug.LogError("TargetBall not found!");
         }
+        
+        goalCube = mazeGenerator.GetGoal();
+
         previousDistanceToBall =
             Vector3.Distance(transform.position, ball.position);
 
@@ -139,16 +144,16 @@ public class RobotBrain : Agent
         if (debugTimer > 1f)
         {
             debugTimer = 0f;
-            Debug.Log(
-                $"HasBall={hasBall} " +
-                $"BallVisible={cameraSensor.ballVisible} " +
-                $"BallOffset={cameraSensor.horizontalOffset:F2} " +
-                $"BallDist={cameraSensor.normalizedDistance:F2}"
-                
-            );
-            Debug.Log(
-                $"Total: {GetCumulativeReward():0.000}"
-            );
+            //Debug.Log(
+            //    $"HasBall={hasBall} " +
+            //    $"BallVisible={cameraSensor.ballVisible} " +
+            //    $"BallOffset={cameraSensor.horizontalOffset:F2} " +
+            //    $"BallDist={cameraSensor.normalizedDistance:F2}"
+            //    
+            //);
+            //Debug.Log(
+            //    $"Total: {GetCumulativeReward():0.000}"
+            //);
 
         }
         sensor.AddObservation(
@@ -265,7 +270,7 @@ public class RobotBrain : Agent
     {
         //Debug.Log("Action");
     episodeTimer += Time.fixedDeltaTime;
-
+    
     //-----------------------------------
     // Continuous actions
     //-----------------------------------
@@ -407,19 +412,26 @@ public class RobotBrain : Agent
 
     if (hasBall && !rewardForPickupGiven)
     {
+        
         AddReward(5f);
         rewardForPickupGiven = true;
     }
-    if (hasBall)
+    if (hasBall && goalCube!=null)
     {
-        float distToStart = Vector3.Distance(transform.position, startPosition);
+        
+        float distToGoal = Vector3.Distance(transform.position, goalCube.position);
+        
+        // Небольшая награда за приближение к кубу
+        AddReward((1f - Mathf.Clamp01(distToGoal / 3f)) * 0.002f);
 
-        if (distToStart < 0.6f) // радиус успеха
+        // Успех
+        if (distToGoal < 0.6f)
         {
-            AddReward(10f);      // большая награда за выполнение всей задачи
+            AddReward(10f);
             EndEpisode();
         }
     }
+    
     //-----------------------------------
     // Robot escaped
     //-----------------------------------

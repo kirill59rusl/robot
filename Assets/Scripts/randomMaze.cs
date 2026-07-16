@@ -149,6 +149,7 @@ public class MazeGenerator : MonoBehaviour
 
     startCube.transform.localScale = Vector3.one * cubeScale;
     startCube.name = "StartCube";
+    startCube.tag = "Goal";
 }
     
     
@@ -397,7 +398,11 @@ public class MazeGenerator : MonoBehaviour
         return safePositions;
     }
     
-    
+    public Transform GetGoal()
+{
+    return startCube.transform;
+}
+
     private void ClearMaze()
     {
         foreach (Transform child in transform)

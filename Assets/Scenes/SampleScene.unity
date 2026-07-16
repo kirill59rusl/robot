@@ -494,18 +494,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.288
-      objectReference: {fileID: 0}
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1.152
-      objectReference: {fileID: 0}
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.15
-      objectReference: {fileID: 0}
     - target: {fileID: 3520785146427592773, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.51
@@ -546,25 +534,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: maxDistance
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene
-      objectReference: {fileID: 0}
-    - target: {fileID: 8445922495035397922, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: near clip plane
-      value: 0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 8627867860838374040, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rosBridge
-      value: 
-      objectReference: {fileID: 4023427757054901212}
-    - target: {fileID: 8627867860838374040, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: useRealRobot
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8991021445614112832, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Constraints
@@ -573,31 +545,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4953172232079785222, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4023427757054901212}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
---- !u!1 &4023427757054901211 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4953172232079785222, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-  m_PrefabInstance: {fileID: 4023427757054901210}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4023427757054901212
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4023427757054901211}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd9b4b1463fd22a42bff926100f7edd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RosBridge
-  cmdVelTopic: /cmd_vel
-  gripperTopic: /cmd_gripper
-  cameraTopic: /cmd_camera_pan
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
