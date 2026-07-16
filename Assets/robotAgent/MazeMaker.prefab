@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2295384569828783149
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4613036868295651386}
+  - component: {fileID: 8636186621580941555}
+  m_Layer: 0
+  m_Name: MazeMaker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4613036868295651386
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2295384569828783149}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.51, y: 0, z: -2.83}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8636186621580941555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2295384569828783149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b43c1ab1640664ab6ffb495c9b005c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MazeGenerator
+  groundPlanePrefab: {fileID: 7815531718744519152, guid: 3abd9c861cf4d7b40a9f33b3483bd19a, type: 3}
+  obstaclePrefab: {fileID: 7311222821972800498, guid: 7e5a6fb9d2e5bf248aea601bb205ba69, type: 3}
+  ballPrefab: {fileID: 2736401617863610908, guid: 499f85ad01b48fb4f99a9625491a3a03, type: 3}
+  startCubePrefab: {fileID: 972796397300475231, guid: 4fcfaeedaaa72004489317fcff0a4726, type: 3}
+  obstacleCount: 0
+  minDistanceFromStart: 0.4
+  minDistanceBetweenObstacles: 0.36
+  minDistanceFromEdge: 0.2
+  ballRadius: 0.04
+  minDistanceFromBallToObstacle: 0.2
+  minDistanceFromBallToStart: 0.4
+  groundSize: {x: 0.7, y: 0.6}
+  obstacleSize: {x: 0.36, y: 0.24, z: 0.14}
+  ballScale: 0.08
+  cubeScale: 0.08
