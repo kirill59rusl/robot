@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+ 
 /// <summary>
 /// Управление гусеницами GFS-X:
 /// дифференциал → PWM → MovePosition/MoveRotation.
@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 /// W/S - газ
 /// A/D - поворот
 /// </summary>
-
+ 
 [RequireComponent(typeof(Rigidbody))]
 public class TrackController : MonoBehaviour
 {
@@ -17,43 +17,43 @@ public class TrackController : MonoBehaviour
     public float turnSpeed = 120f;
     [Range(0f, 1f)]
     public float turnK = 0.30f;
-
+ 
     public float maxLinearCmd = 0.25f;
-
-
+ 
     [Header("PWM")]
     public float speedToPwm = 200f;
     public float motorDeadzone = 30f;
     public float minMotorPwm = 50f;
     public float maxPwmStep = 15f;
-
-
+ 
     [Header("Команды (-1...1)")]
     public float gas;
     public float steer;
-
-
+    [Header("ROS")]
+    public bool useRealRobot = false;
+    
+    public RosBridge rosBridge;
+ 
     private Rigidbody rb;
-
+ 
     private float prevLeftPwm;
     private float prevRightPwm;
 
 
-
+ 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
+ 
         rb.interpolation =
             RigidbodyInterpolation.Interpolate;
-
+ 
         rb.collisionDetectionMode =
             CollisionDetectionMode.Continuous;
-
+ 
         rb.linearDamping = 9f;
         rb.angularDamping = 9f;
-
-
+ 
         rb.constraints |=
             RigidbodyConstraints.FreezeRotationX |
             RigidbodyConstraints.FreezeRotationZ;
@@ -61,7 +61,7 @@ public class TrackController : MonoBehaviour
 
 
 
-
+ 
     private void Update()
     {
         ReadKeyboard();
@@ -70,35 +70,32 @@ public class TrackController : MonoBehaviour
 
 
 
-
+ 
     private void ReadKeyboard()
     {
         gas = 0f;
         steer = 0f;
-
-
+ 
         if (Keyboard.current == null)
             return;
 
 
-
+ 
         // газ
-
+ 
         if (Keyboard.current.wKey.isPressed)
             gas += 1f;
-
-
+ 
         if (Keyboard.current.sKey.isPressed)
             gas -= 1f;
 
 
-
+ 
         // поворот
-
+ 
         if (Keyboard.current.aKey.isPressed)
             steer -= 1f;
-
-
+ 
         if (Keyboard.current.dKey.isPressed)
             steer += 1f;
     }
@@ -108,7 +105,7 @@ public class TrackController : MonoBehaviour
 
 
 
-
+ 
     private void FixedUpdate()
     {
         float g =
@@ -117,8 +114,7 @@ public class TrackController : MonoBehaviour
                 -1f,
                 1f
             );
-
-
+ 
         float s =
             Mathf.Clamp(
                 steer,
@@ -127,23 +123,28 @@ public class TrackController : MonoBehaviour
             );
 
 
-
+ 
         MixTracks(
             g,
             s,
             out float vLeft,
             out float vRight
         );
-
-
-
+ 
+        if (useRealRobot)
+        {
+            if (rosBridge != null)
+                rosBridge.SendVelocity(g, s);
+        
+            return;
+        }
+ 
         float leftPwm =
             ApplyMotorModel(
                 vLeft * speedToPwm,
                 ref prevLeftPwm
             );
-
-
+ 
         float rightPwm =
             ApplyMotorModel(
                 vRight * speedToPwm,
@@ -151,54 +152,52 @@ public class TrackController : MonoBehaviour
             );
 
 
-
+ 
         float effLeft =
             leftPwm / speedToPwm;
-
-
+ 
         float effRight =
             rightPwm / speedToPwm;
 
 
-
+ 
         float v =
             0.5f *
             (effRight + effLeft);
 
 
-
+ 
         float diff =
             effRight - effLeft;
 
 
-
+ 
         float yawDegPerSec =
             (diff /
             (2f * Mathf.Max(moveSpeed, 1e-4f)))
             * turnSpeed;
 
 
-
+ 
         float dt =
             Time.fixedDeltaTime;
 
 
-
+ 
         Vector3 delta =
             transform.right *
             (v * dt);
-
-
+ 
         delta.y = 0f;
 
 
-
+ 
         rb.MovePosition(
             rb.position + delta
         );
 
 
-
+ 
         rb.MoveRotation(
             rb.rotation *
             Quaternion.Euler(
@@ -214,7 +213,7 @@ public class TrackController : MonoBehaviour
 
 
 
-
+ 
     private void MixTracks(
         float g,
         float s,
@@ -228,23 +227,21 @@ public class TrackController : MonoBehaviour
                 -maxLinearCmd,
                 maxLinearCmd
             );
-
-
+ 
         float turn =
             s *
             turnK *
             moveSpeed;
 
 
-
+ 
         vLeft =
             Mathf.Clamp(
                 linear - turn,
                 -moveSpeed,
                 moveSpeed
             );
-
-
+ 
         vRight =
             Mathf.Clamp(
                 linear + turn,
@@ -258,7 +255,7 @@ public class TrackController : MonoBehaviour
 
 
 
-
+ 
     private float ApplyMotorModel(
         float rawPwm,
         ref float previous
@@ -266,13 +263,12 @@ public class TrackController : MonoBehaviour
     {
         float sign =
             Mathf.Sign(rawPwm);
-
-
+ 
         float mag =
             Mathf.Abs(rawPwm);
 
 
-
+ 
         if (mag < motorDeadzone)
         {
             mag = 0f;
@@ -283,7 +279,7 @@ public class TrackController : MonoBehaviour
         }
 
 
-
+ 
         mag =
             Mathf.Min(
                 mag,
@@ -291,20 +287,41 @@ public class TrackController : MonoBehaviour
             );
 
 
-
+ 
         float target =
             sign * mag;
 
 
-
+ 
         previous +=
             Mathf.Clamp(
                 target - previous,
                 -maxPwmStep,
                 maxPwmStep
             );
-
-
+ 
         return previous;
+    }
+    private void CalculatePWM(
+        float gas,
+        float steer,
+        out float leftPwm,
+        out float rightPwm)
+    {
+        MixTracks(
+            gas,
+            steer,
+            out float vLeft,
+            out float vRight);
+    
+        leftPwm =
+            ApplyMotorModel(
+                vLeft * speedToPwm,
+                ref prevLeftPwm);
+    
+        rightPwm =
+            ApplyMotorModel(
+                vRight * speedToPwm,
+                ref prevRightPwm);
     }
 }
