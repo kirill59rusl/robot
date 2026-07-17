@@ -24,4 +24,9 @@ public class RewardSettings
 
     [Header("Episode")]
     public float fallPenalty = -2f;
+
+    [Header("Box Penalties")]
+    public float boxCollisionPenalty = -0.05f;
+    public float boxPushPenalty = -0.02f;
+
 }
