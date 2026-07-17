@@ -50,7 +50,7 @@ env_settings:
   env_path: ./Builds/testBuild2/Studcamp1.exe
   env_args: null
   base_port: 5005
-  num_envs: 10
+  num_envs: 5
   num_areas: 1
   timeout_wait: 60
   seed: -1
@@ -71,8 +71,8 @@ checkpoint_settings:
   run_id: my_thr_run
   initialize_from: null
   load_model: false
-  resume: false
-  force: true
+  resume: true
+  force: false
   train_model: false
   inference: false
   results_dir: results

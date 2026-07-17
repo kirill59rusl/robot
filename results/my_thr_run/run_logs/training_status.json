@@ -9,15 +9,24 @@
                 "auxillary_file_paths": [
                     "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-17369.pt"
                 ]
+            },
+            {
+                "steps": 315578,
+                "file_path": "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-315578.onnx",
+                "reward": -1.5848626700731425,
+                "creation_time": 1784284322.1224923,
+                "auxillary_file_paths": [
+                    "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-315578.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 17369,
+            "steps": 315578,
             "file_path": "results\\my_thr_run\\GFSX_Brain.onnx",
-            "reward": -2.9997409847047596,
-            "creation_time": 1784282724.7604094,
+            "reward": -1.5848626700731425,
+            "creation_time": 1784284322.1224923,
             "auxillary_file_paths": [
-                "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-17369.pt"
+                "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-315578.pt"
             ]
         }
     },
