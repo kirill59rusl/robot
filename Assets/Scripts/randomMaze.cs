@@ -213,7 +213,19 @@ public class MazeGenerator : MonoBehaviour
             obstacle.transform.localScale = obstacleSize;
             obstacle.name = $"Obstacle_{placedCount}";
             obstacle.tag = "Obstacle";
-            
+            var obstacleController = obstacle.GetComponent<ObstacleController>();
+            if (obstacleController != null)
+            {
+                obstacleController.RandomizeSizeAndMass();
+            }
+            else
+            {
+
+                obstacle.transform.localScale = obstacleSize; // fallback, если контроллера нет
+              
+                Debug.LogWarning($"MassRandomizer отсутствует на {obstacle.name}!");
+            }
+
             obstaclePositions.Add(position);
             availableForObstacles.RemoveAt(randomIndex);
             availablePositions.Remove(position);

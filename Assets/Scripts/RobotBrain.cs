@@ -1,7 +1,9 @@
-using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.MLAgents;
-using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Sensors;
+using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class RobotBrain : Agent
@@ -18,6 +20,10 @@ public class RobotBrain : Agent
     [Header("Rewards")]
     [SerializeField]
     private RewardSettings rewardSettings = new();
+
+    [Header("Obstacles")]
+    private Dictionary<Transform, Vector3> boxPreviousPositions = new();
+
 
     private RewardSystem rewardSystem;
     bool rewardForPickupGiven;
@@ -127,6 +133,11 @@ public class RobotBrain : Agent
         previousSteer = 0;
 
         episodeTimer = 0;
+        boxPreviousPositions.Clear();
+        foreach (var box in GameObject.FindGameObjectsWithTag("Obstacle"))
+        {
+            boxPreviousPositions[box.transform] = box.transform.position;
+        }
 
         hasBall = false;
         timeSinceBallSeen = 0f;
@@ -376,8 +387,25 @@ public class RobotBrain : Agent
         rewardSystem.Pickup();
         rewardForPickupGiven = true;
     }
+        foreach (var kvp in boxPreviousPositions.ToList())
+        {
+            Transform boxTransform = kvp.Key;
+            if (boxTransform == null) continue; // коробку могли уничтожить
 
-    if (hasBall && goalCube != null)
+            Vector3 prevPos = kvp.Value;
+            float moved = Vector3.Distance(boxTransform.position, prevPos);
+
+            if (moved > 0.001f) // порог, чтобы не ловить шум физики
+            {
+                var obstacleRb = boxTransform.GetComponent<Rigidbody>();
+                float mass = obstacleRb != null ? obstacleRb.mass : 1f;
+                rewardSystem.BoxPushed(moved, mass);
+            }
+
+            boxPreviousPositions[boxTransform] = boxTransform.position;
+        }
+
+        if (hasBall && goalCube != null)
     {
         float dist = Vector3.Distance(transform.position, goalCube.position);
         rewardSystem.GoalApproach(dist);
@@ -469,5 +497,12 @@ public override void Heuristic(in ActionBuffers actionsOut)
     if (keyboard.leftShiftKey.isPressed)
         discrete[0] = 2;
 }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            rewardSystem.BoxCollision();
+        }
+    }
 
-}   
+}
