@@ -5,7 +5,7 @@ public class RewardSystem
 {
     private readonly Agent agent;
     private readonly RewardSettings settings;
-
+    
     public RewardSystem(Agent agent, RewardSettings settings)
     {
         this.agent = agent;
@@ -23,14 +23,31 @@ public class RewardSystem
         agent.AddReward(delta * settings.distanceRewardMultiplier);
     }
 
-    public void BallVisible(float horizontalOffset)
-    {
-        agent.AddReward(settings.ballVisibleReward);
+    private float lastDistanceToBall = float.MaxValue;
 
-        agent.AddReward(
-            (1f - Mathf.Abs(horizontalOffset))
-            * settings.centeredBallReward
-        );
+    public void BallVisible(float horizontalOffset, float currentDistance)
+    {
+        // Награда только если расстояние до мяча уменьшается
+        if (currentDistance < lastDistanceToBall - 0.01f)
+        {
+            float improvement = (lastDistanceToBall - currentDistance) / lastDistanceToBall;
+            agent.AddReward(
+                improvement * settings.distanceRewardMultiplier * 2f
+            );
+
+            // Дополнительный бонус за центрирование при приближении
+            agent.AddReward(
+                (1f - Mathf.Abs(horizontalOffset)) * 
+                settings.centeredBallReward * 0.5f
+            );
+        }
+        else if (currentDistance > lastDistanceToBall + 0.05f)
+        {
+            // Штраф за отдаление от мяча
+            agent.AddReward(-0.001f);
+        }
+
+        lastDistanceToBall = currentDistance;
     }
 
     public void WallPenalty(float ultrasonic, float leftIR, float rightIR)
