@@ -15,7 +15,13 @@ public class RobotBrain : Agent
     [Header("Environment")]
     public MazeGenerator mazeGenerator;
 
+    [Header("Rewards")]
+    [SerializeField]
+    private RewardSettings rewardSettings = new();
+
+    private RewardSystem rewardSystem;
     bool rewardForPickupGiven;
+
     Rigidbody rb;
 
     Vector3 startPosition;
@@ -24,11 +30,12 @@ public class RobotBrain : Agent
     float previousDistanceToBall;
     float previousGas;
     float previousSteer;
-
+    
     float episodeTimer;
 
     bool hasBall;
 
+    Transform goalCube;
     Transform ball;
 
     // Camera memory
@@ -63,6 +70,7 @@ public class RobotBrain : Agent
                 Debug.LogWarning("CameraPanController not found!");
             }
         }
+
         if (cameraSensor == null)
         {
             cameraSensor = GetComponentInChildren<SimulatedYoloCamera>();
@@ -71,6 +79,7 @@ public class RobotBrain : Agent
                 Debug.LogWarning("SimulatedYoloCamera not found!");
             }
         }
+        rewardSystem = new RewardSystem(this, rewardSettings);
         startPosition = transform.position;
         startRotation = transform.rotation;
 
@@ -90,7 +99,7 @@ public class RobotBrain : Agent
         Vector3 spawn =
             mazeGenerator.GetStartPosition();
 
-        spawn.y = 0.04f;
+        spawn.y = 0;
 
         transform.position = spawn;
 
@@ -104,11 +113,15 @@ public class RobotBrain : Agent
         if (obj != null)
         {
             ball = obj.transform;
+            
         }
         else
         {
             Debug.LogError("TargetBall not found!");
         }
+        
+        goalCube = mazeGenerator.GetGoal();
+
         previousDistanceToBall =
             Vector3.Distance(transform.position, ball.position);
 
@@ -139,16 +152,16 @@ public class RobotBrain : Agent
         if (debugTimer > 1f)
         {
             debugTimer = 0f;
-            Debug.Log(
-                $"HasBall={hasBall} " +
-                $"BallVisible={cameraSensor.ballVisible} " +
-                $"BallOffset={cameraSensor.horizontalOffset:F2} " +
-                $"BallDist={cameraSensor.normalizedDistance:F2}"
-                
-            );
-            Debug.Log(
-                $"Total: {GetCumulativeReward():0.000}"
-            );
+            //Debug.Log(
+            //    $"HasBall={hasBall} " +
+            //    $"BallVisible={cameraSensor.ballVisible} " +
+            //    $"BallOffset={cameraSensor.horizontalOffset:F2} " +
+            //    $"BallDist={cameraSensor.normalizedDistance:F2}"
+            //    
+            //);
+            //Debug.Log(
+            //    $"Total: {GetCumulativeReward():0.000}"
+            //);
 
         }
         sensor.AddObservation(
@@ -265,7 +278,7 @@ public class RobotBrain : Agent
     {
         //Debug.Log("Action");
     episodeTimer += Time.fixedDeltaTime;
-
+    
     //-----------------------------------
     // Continuous actions
     //-----------------------------------
@@ -332,114 +345,58 @@ public class RobotBrain : Agent
 
     hasBall = gripper.HasBall();
 
-    //-----------------------------------
-    // Small time penalty
-    //-----------------------------------
-
-    AddReward(-0.0005f);
-
-    //-----------------------------------
-    // Distance reward
-    //-----------------------------------
+    rewardSystem.StepPenalty();
 
     if (ball != null)
     {
-        float currentDistance =
-            Vector3.Distance(
-                transform.position,
-                ball.position
-            );
-
-        float delta =
-            previousDistanceToBall - currentDistance;
-
-        AddReward(delta * 0.2f);
-
-        previousDistanceToBall =
-            currentDistance;
+        float currentDistance = Vector3.Distance(transform.position, ball.position);
+        rewardSystem.DistanceReward(previousDistanceToBall, currentDistance);
+        previousDistanceToBall = currentDistance;
     }
-
-    //-----------------------------------
-    // Ball visible reward
-    //-----------------------------------
 
     if (cameraSensor.ballVisible)
     {
-        AddReward(0.005f);
-
-        AddReward(
-            (1f -
-            Mathf.Abs(cameraSensor.horizontalOffset))
-            * 0.002f
-        );
+        rewardSystem.BallVisible(cameraSensor.horizontalOffset);
     }
 
-    //-----------------------------------
-    // Wall avoidance
-    //-----------------------------------
-
-    if (sensors.ultrasonic < 0.20f)
-        AddReward(-0.003f);
-
-    if (sensors.leftIR < 0.10f)
-        AddReward(-0.003f);
-
-    if (sensors.rightIR < 0.10f)
-        AddReward(-0.003f);
-
-    //-----------------------------------
-    // Smooth driving
-    //-----------------------------------
+    rewardSystem.WallPenalty(
+        sensors.ultrasonic,
+        sensors.leftIR,
+        sensors.rightIR
+    );
 
     float change =
-        Mathf.Abs(gas - previousGas)
-        +
+        Mathf.Abs(gas - previousGas) +
         Mathf.Abs(steering - previousSteer);
-
-    AddReward(-change * 0.001f);
+    rewardSystem.SmoothDriving(change);
 
     previousGas = gas;
     previousSteer = steering;
-    
-    //-----------------------------------
-    // Success
-    //-----------------------------------
 
     if (hasBall && !rewardForPickupGiven)
     {
-        AddReward(5f);
+        rewardSystem.Pickup();
         rewardForPickupGiven = true;
     }
-    if (hasBall)
-    {
-        float distToStart = Vector3.Distance(transform.position, startPosition);
 
-        if (distToStart < 0.6f) // радиус успеха
+    if (hasBall && goalCube != null)
+    {
+        float dist = Vector3.Distance(transform.position, goalCube.position);
+        rewardSystem.GoalApproach(dist);
+        if (dist < 0.6f)
         {
-            AddReward(10f);      // большая награда за выполнение всей задачи
+            rewardSystem.GoalReached();
             EndEpisode();
         }
     }
-    //-----------------------------------
-    // Robot escaped
-    //-----------------------------------
 
     if (transform.position.y < -0.2f)
     {
-        AddReward(-2f);
-
-        EndEpisode();
-    }
-
-    //-----------------------------------
-    // Timeout
-    //-----------------------------------
-
-    if (episodeTimer > 120f)
-    {
+        rewardSystem.Fell();
         EndEpisode();
     }
 }
+
 public override void Heuristic(in ActionBuffers actionsOut)
 {
     var continuous = actionsOut.ContinuousActions;

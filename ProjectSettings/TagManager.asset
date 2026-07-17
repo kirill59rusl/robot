@@ -7,6 +7,7 @@ TagManager:
   - Undefined
   - Obstacle
   - TargetBall
+  - Goal
   layers:
   - Default
   - TransparentFX

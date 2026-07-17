@@ -441,6 +441,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1161406729}
+  - component: {fileID: 1161406730}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -463,6 +464,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1161406730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1161406728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7acef0b79454c9b4dae3f8139bc4ba77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Robotics.ROSTCPConnector::Unity.Robotics.ROSTCPConnector.ROSConnection
+  m_RosIPAddress: 127.0.0.1
+  m_RosPort: 10000
+  m_ConnectOnStart: 1
+  m_KeepaliveTime: 1
+  m_NetworkTimeoutSeconds: 2
+  m_SleepTimeSeconds: 0.01
+  m_ShowHUD: 1
+  m_TFTopics:
+  - /tf
+  listenForTFMessages: 1
 --- !u!1001 &4023427757054901210
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -471,18 +494,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.288
-      objectReference: {fileID: 0}
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1.152
-      objectReference: {fileID: 0}
-    - target: {fileID: 3459453821351083213, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.15
-      objectReference: {fileID: 0}
     - target: {fileID: 3520785146427592773, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.51
@@ -523,17 +534,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: maxDistance
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene
       objectReference: {fileID: 0}
-    - target: {fileID: 8445922495035397922, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: near clip plane
-      value: 0.01
+    - target: {fileID: 8991021445614112832, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+      propertyPath: m_Constraints
+      value: 84
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
