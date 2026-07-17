@@ -50,7 +50,7 @@ env_settings:
   env_path: ./Builds/testBuild2/Studcamp1.exe
   env_args: null
   base_port: 5005
-  num_envs: 6
+  num_envs: 10
   num_areas: 1
   timeout_wait: 60
   seed: -1
