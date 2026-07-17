@@ -13,6 +13,7 @@ public class MazeGenerator : MonoBehaviour
     [Header("Параметры генерации")]
     [SerializeField] private int obstacleCount = 30;
     [SerializeField] private float minDistanceFromStart = 0.5f;
+    [SerializeField] private float maxDistanceFromBallToStart = 1.5f;
     [SerializeField] private float minDistanceBetweenObstacles = 0.5f;
     [SerializeField] private float minDistanceFromEdge = 0.2f;
     [SerializeField] private float ballRadius = 0.04f;
@@ -247,7 +248,8 @@ public class MazeGenerator : MonoBehaviour
                 new Vector3(startPosition.x, 0, startPosition.z)
             );
             
-            if (distToStart < minDistanceFromBallToStart)
+            if (distToStart < minDistanceFromBallToStart ||
+                distToStart > maxDistanceFromBallToStart)
             {
                 isValid = false;
                 continue;
@@ -369,10 +371,13 @@ public class MazeGenerator : MonoBehaviour
         // Проверка расстояния до препятствий
         foreach (Vector3 obstaclePos in obstaclePositions)
         {
-            if (Vector3.Distance(
+            float distToStart = Vector3.Distance(
                 new Vector3(position.x, 0, position.z),
-                new Vector3(obstaclePos.x, 0, obstaclePos.z)
-            ) < minDistanceFromBallToObstacle)
+                new Vector3(startPosition.x, 0, startPosition.z)
+            );
+
+            if (distToStart < minDistanceFromBallToStart ||
+                distToStart > maxDistanceFromBallToStart)
             {
                 return false;
             }
@@ -402,6 +407,9 @@ public class MazeGenerator : MonoBehaviour
 {
     return startCube.transform;
 }
+    public Transform GetBall(){
+        return ballObject.transform;
+    }
 
     private void ClearMaze()
     {
@@ -498,6 +506,11 @@ public class MazeGenerator : MonoBehaviour
                 Gizmos.DrawWireSphere(
                     new Vector3(pos.x, 0, pos.z),
                     minDistanceFromBallToObstacle
+                );
+                Gizmos.color = new Color(0, 1, 1, 0.15f);
+                Gizmos.DrawWireSphere(
+                    new Vector3(startPosition.x, 0, startPosition.z),
+                    maxDistanceFromBallToStart
                 );
             }
         }
