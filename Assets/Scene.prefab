@@ -55,12 +55,16 @@ PrefabInstance:
       objectReference: {fileID: 7696283471753021205}
     - target: {fileID: 2934687937321737502, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Constraints
-      value: 84
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: mazeGenerator
       value: 
       objectReference: {fileID: 111112060434989001}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.distanceRewardMultiplier
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: maxDistance
       value: 5
