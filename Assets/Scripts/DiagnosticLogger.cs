@@ -17,7 +17,7 @@ public class DiagnosticLogger : MonoBehaviour
     {
         if (enableLogging)
         {
-            string path = Path.Combine(Application.dataPath, "..", "diagnostic_log.csv");
+            string path = Path.Combine(Application.dataPath, "../robot_logs", "diagnostic_log.csv");
             writer = new StreamWriter(path, false, Encoding.UTF8);
 
             // ДОБАВЛЕНЫ: epId, trueDist, stepRew, totalRew

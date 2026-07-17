@@ -1,9 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using Unity.MLAgents;
-using Unity.MLAgents.Actuators;
-using Unity.MLAgents.Sensors;
 using UnityEngine;
+using Unity.MLAgents;
+using Unity.MLAgents.Sensors;
+using Unity.MLAgents.Actuators;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class RobotBrain : Agent
@@ -21,10 +19,6 @@ public class RobotBrain : Agent
     [SerializeField]
     private RewardSettings rewardSettings = new();
 
-    [Header("Obstacles")]
-    private Dictionary<Transform, Vector3> boxPreviousPositions = new();
-
-
     private RewardSystem rewardSystem;
     bool rewardForPickupGiven;
 
@@ -40,6 +34,8 @@ public class RobotBrain : Agent
     float episodeTimer;
 
     bool hasBall;
+    int holdTicks;        // ������� ����� ������ ������������ ������ (���� �����)
+    float stepReward;      // ������� �� ������� ���
 
     Transform goalCube;
     Transform ball;
@@ -133,18 +129,13 @@ public class RobotBrain : Agent
         previousSteer = 0;
 
         episodeTimer = 0;
-        boxPreviousPositions.Clear();
-        foreach (var box in GameObject.FindGameObjectsWithTag("Obstacle"))
-        {
-            boxPreviousPositions[box.transform] = box.transform.position;
-        }
 
         hasBall = false;
         timeSinceBallSeen = 0f;
         lastKnownBallAngle = 0f;
         startPosition = spawn;
         startRotation = transform.rotation;
-        
+        holdTicks = 0;
     }
 
     
@@ -285,12 +276,13 @@ public class RobotBrain : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         //Debug.Log("Action");
-    episodeTimer += Time.fixedDeltaTime;
-    
-    //-----------------------------------
-    // Continuous actions
-    //-----------------------------------
-    if (trackController == null || sensors == null || gripper == null)
+        episodeTimer += Time.fixedDeltaTime;
+        float rewardBefore = GetCumulativeReward();
+
+        //-----------------------------------
+        // Continuous actions
+        //-----------------------------------
+        if (trackController == null || sensors == null || gripper == null)
     {
         Debug.LogError("Missing components in RobotBrain!");
         return;
@@ -352,7 +344,10 @@ public class RobotBrain : Agent
     }
 
     hasBall = gripper.HasBall();
-
+    if (hasBall)
+        holdTicks++;
+    else
+        holdTicks = 0;
     rewardSystem.StepPenalty();
 
     if (ball != null && !hasBall)
@@ -387,25 +382,8 @@ public class RobotBrain : Agent
         rewardSystem.Pickup();
         rewardForPickupGiven = true;
     }
-        foreach (var kvp in boxPreviousPositions.ToList())
-        {
-            Transform boxTransform = kvp.Key;
-            if (boxTransform == null) continue; // коробку могли уничтожить
 
-            Vector3 prevPos = kvp.Value;
-            float moved = Vector3.Distance(boxTransform.position, prevPos);
-
-            if (moved > 0.001f) // порог, чтобы не ловить шум физики
-            {
-                var obstacleRb = boxTransform.GetComponent<Rigidbody>();
-                float mass = obstacleRb != null ? obstacleRb.mass : 1f;
-                rewardSystem.BoxPushed(moved, mass);
-            }
-
-            boxPreviousPositions[boxTransform] = boxTransform.position;
-        }
-
-        if (hasBall && goalCube != null)
+    if (hasBall && goalCube != null)
     {
         float dist = Vector3.Distance(transform.position, goalCube.position);
         rewardSystem.GoalApproach(dist);
@@ -429,9 +407,67 @@ public class RobotBrain : Agent
         rewardSystem.Fell();
         EndEpisode();
     }
-}
+    stepReward = GetCumulativeReward() - rewardBefore;
 
-public override void Heuristic(in ActionBuffers actionsOut)
+        // --- ������ ���������� � TENSORBOARD (ML-AGENTS STATS RECORDER) ---
+        StatsRecorder statsRecorder = Academy.Instance.StatsRecorder;
+
+        if (statsRecorder != null)
+        {
+            // 1. ������� (��������� ������ ����� ����� ���)
+            statsRecorder.Add("Sensors/Ultrasonic", sensors.ultrasonic);
+            statsRecorder.Add("Sensors/IR_Left", sensors.leftIR);
+            statsRecorder.Add("Sensors/IR_Right", sensors.rightIR);
+            statsRecorder.Add("Sensors/GripperIR", sensors.gripperIR);
+
+            // ������ (��������� ����)
+            statsRecorder.Add("Sensors/BallVisible", cameraSensor.ballVisible ? 1f : 0f);
+            if (cameraSensor.ballVisible)
+            {
+                statsRecorder.Add("Sensors/BallAngleOffset", cameraSensor.horizontalOffset);
+                statsRecorder.Add("Sensors/BallCameraDistance", cameraSensor.normalizedDistance);
+            }
+            statsRecorder.Add("Sensors/TrueDistanceToBall", ball != null ? Vector3.Distance(transform.position, ball.position) : -1f);
+            statsRecorder.Add("Sensors/CameraYawAngle", cameraPan != null ? cameraPan.CurrentAngle : 0f);
+
+            // 2. ��������� � ���������� (��������� ��������� � �������������)
+            statsRecorder.Add("Actuators/Gas_Raw", gas);
+            statsRecorder.Add("Actuators/Steering_Raw", steering);
+            // ���� � ��� �������� ���������� ������ �� DR (smoothedGas � finalSteer), ���������������� ��:
+            // statsRecorder.Add("Actuators/Gas_Smoothed", smoothedGas);
+            // statsRecorder.Add("Actuators/Steering_Final", finalSteer);
+
+            // 3. ��������� ������ � ��������� (��� ����� ����� ����������/��������� ������)
+            statsRecorder.Add("Agent_State/HasBall", hasBall ? 1f : 0f);
+            statsRecorder.Add("Agent_State/HoldTicks", holdTicks);
+            //statsRecorder.Add("Agent_State/IsRetryingBackwards", isRetrying ? 1f : 0f); # �� ����� �����-������
+            statsRecorder.Add("Agent_State/Speed_MS", rb.linearVelocity.magnitude);
+
+            // ���������� �������� �� ������ (������� ������, ��������� ������ �������)
+            statsRecorder.Add("Agent_State/Displacement_X", transform.position.x - startPosition.x);
+            statsRecorder.Add("Agent_State/Displacement_Z", transform.position.z - startPosition.z);
+
+            // 4. ����������� ������ (�������� ������, �� ���� ���� ������ ����� ������ ������)
+            statsRecorder.Add("Rewards/StepReward", stepReward); // ������� �� ���������� ��� (����� ���� �������������)
+            statsRecorder.Add("Rewards/CumulativeReward", GetCumulativeReward()); // ����������� ������� �� ������� ������
+
+            // ���������� �� ������ � ����� (����������, �������� �� �� ��������� �����)
+            if (hasBall)
+            {
+                statsRecorder.Add("Rewards/ReturnDistanceToStart", Vector3.Distance(transform.position, startPosition));
+            }
+
+            if (cameraSensor.ballVisible && ball != null)
+            {
+                float trueDist = Vector3.Distance(transform.position, ball.position);
+                float cameraError = Mathf.Abs(cameraSensor.normalizedDistance - Mathf.Clamp01(trueDist / maxArenaDistance));
+                statsRecorder.Add("Sensors/CameraDistanceError", cameraError);
+            }
+        }
+
+    }
+
+    public override void Heuristic(in ActionBuffers actionsOut)
 {
     var continuous = actionsOut.ContinuousActions;
     var discrete = actionsOut.DiscreteActions;
@@ -497,12 +533,5 @@ public override void Heuristic(in ActionBuffers actionsOut)
     if (keyboard.leftShiftKey.isPressed)
         discrete[0] = 2;
 }
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Obstacle"))
-        {
-            rewardSystem.BoxCollision();
-        }
-    }
 
-}
+}   
