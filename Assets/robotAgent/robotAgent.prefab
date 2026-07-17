@@ -535,6 +535,8 @@ MonoBehaviour:
   maxPwmStep: 15
   gas: 0
   steer: 0
+  useRealRobot: 0
+  rosBridge: {fileID: 0}
 --- !u!114 &65196901226264573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -603,6 +605,17 @@ MonoBehaviour:
   cameraSensor: {fileID: 3602958851195469796}
   cameraPan: {fileID: 1322264039066847826}
   mazeGenerator: {fileID: 0}
+  rewardSettings:
+    stepPenalty: -0.0005
+    distanceRewardMultiplier: 0.2
+    ballVisibleReward: 0.005
+    centeredBallReward: 0.002
+    wallPenalty: -0.003
+    smoothDrivingPenalty: -0.001
+    pickupReward: 5
+    goalApproachReward: 0.002
+    goalReward: 10
+    fallPenalty: -2
 --- !u!1 &1917713898052067012
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,8 +646,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3539739543748822642}
-  - {fileID: 4204371596829982913}
-  - {fileID: 1874574664212345656}
   m_Father: {fileID: 4883057006007737980}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3165698212942265667
@@ -789,11 +800,11 @@ Transform:
   m_GameObject: {fileID: 3239885310149274613}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.08919287, y: -0.11743581, z: 0.07953161}
-  m_LocalScale: {x: 100, y: 99.999985, z: 99.999985}
+  m_LocalPosition: {x: 0.57262707, y: 0.44442415, z: -0.12946886}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2698715753995938582}
+  m_Father: {fileID: 3539739543748822642}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4228694534273755237
 MeshFilter:
@@ -2051,12 +2062,12 @@ Transform:
   m_GameObject: {fileID: 7897487494274835616}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.60190904, y: -0.03745985, z: 0.01601988}
+  m_LocalPosition: {x: 0.05991131, y: 0.5244001, z: -0.19297951}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9012937526574611643}
-  m_Father: {fileID: 2698715753995938582}
+  m_Father: {fileID: 3539739543748822642}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3272783853326455034
 MeshFilter:
@@ -2414,6 +2425,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4204371596829982913}
+  - {fileID: 1874574664212345656}
   - {fileID: 7241488674044490131}
   m_Father: {fileID: 2698715753995938582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
