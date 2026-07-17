@@ -34,6 +34,8 @@ public class RobotBrain : Agent
     float episodeTimer;
 
     bool hasBall;
+    int holdTicks;        // сколько тиков подряд удерживается захват (если нужно)
+    float stepReward;      // награда за текущий шаг
 
     Transform goalCube;
     Transform ball;
@@ -136,7 +138,7 @@ public class RobotBrain : Agent
         lastKnownBallAngle = 0f;
         startPosition = spawn;
         startRotation = transform.rotation;
-        
+        holdTicks = 0;
     }
 
     
@@ -277,12 +279,13 @@ public class RobotBrain : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         //Debug.Log("Action");
-    episodeTimer += Time.fixedDeltaTime;
-    
-    //-----------------------------------
-    // Continuous actions
-    //-----------------------------------
-    if (trackController == null || sensors == null || gripper == null)
+        episodeTimer += Time.fixedDeltaTime;
+        float rewardBefore = GetCumulativeReward();
+
+        //-----------------------------------
+        // Continuous actions
+        //-----------------------------------
+        if (trackController == null || sensors == null || gripper == null)
     {
         Debug.LogError("Missing components in RobotBrain!");
         return;
@@ -344,7 +347,10 @@ public class RobotBrain : Agent
     }
 
     hasBall = gripper.HasBall();
-
+    if (hasBall)
+        holdTicks++;
+    else
+        holdTicks = 0;
     rewardSystem.StepPenalty();
 
     if (ball != null)
@@ -389,15 +395,76 @@ public class RobotBrain : Agent
             EndEpisode();
         }
     }
-
+    if (cameraSensor.ballVisible && ball != null)
+{
+   
+}
     if (transform.position.y < -0.2f)
     {
         rewardSystem.Fell();
         EndEpisode();
     }
-}
+    stepReward = GetCumulativeReward() - rewardBefore;
 
-public override void Heuristic(in ActionBuffers actionsOut)
+        // --- ЗАПИСЬ ТЕЛЕМЕТРИИ В TENSORBOARD (ML-AGENTS STATS RECORDER) ---
+        StatsRecorder statsRecorder = Academy.Instance.StatsRecorder;
+
+        if (statsRecorder != null)
+        {
+            // 1. СЕНСОРЫ (Насколько хорошо робот видит мир)
+            statsRecorder.Add("Sensors/Ultrasonic", sensors.ultrasonic);
+            statsRecorder.Add("Sensors/IR_Left", sensors.leftIR);
+            statsRecorder.Add("Sensors/IR_Right", sensors.rightIR);
+            statsRecorder.Add("Sensors/GripperIR", sensors.gripperIR);
+
+            // Камера (видимость цели)
+            statsRecorder.Add("Sensors/BallVisible", cameraSensor.ballVisible ? 1f : 0f);
+            if (cameraSensor.ballVisible)
+            {
+                statsRecorder.Add("Sensors/BallAngleOffset", cameraSensor.horizontalOffset);
+                statsRecorder.Add("Sensors/BallCameraDistance", cameraSensor.normalizedDistance);
+            }
+            statsRecorder.Add("Sensors/TrueDistanceToBall", ball != null ? Vector3.Distance(transform.position, ball.position) : -1f);
+            statsRecorder.Add("Sensors/CameraYawAngle", cameraPan != null ? cameraPan.CurrentAngle : 0f);
+
+            // 2. АКТУАТОРЫ И УПРАВЛЕНИЕ (Оцениваем плавность и микродвижения)
+            statsRecorder.Add("Actuators/Gas_Raw", gas);
+            statsRecorder.Add("Actuators/Steering_Raw", steering);
+            // Если у вас включены сглаженные версии из DR (smoothedGas и finalSteer), раскомментируйте их:
+            // statsRecorder.Add("Actuators/Gas_Smoothed", smoothedGas);
+            // statsRecorder.Add("Actuators/Steering_Final", finalSteer);
+
+            // 3. СОСТОЯНИЕ АГЕНТА И ЭВРИСТИКИ (Как часто робот застревает/выполняет задачи)
+            statsRecorder.Add("Agent_State/HasBall", hasBall ? 1f : 0f);
+            statsRecorder.Add("Agent_State/HoldTicks", holdTicks);
+            //statsRecorder.Add("Agent_State/IsRetryingBackwards", isRetrying ? 1f : 0f); # мб потом когда-нибудь
+            statsRecorder.Add("Agent_State/Speed_MS", rb.linearVelocity.magnitude);
+
+            // Координаты смещения от старта (полезно видеть, насколько далеко уезжает)
+            statsRecorder.Add("Agent_State/Displacement_X", transform.position.x - startPosition.x);
+            statsRecorder.Add("Agent_State/Displacement_Z", transform.position.z - startPosition.z);
+
+            // 4. ДЕТАЛИЗАЦИЯ НАГРАД (Помогает понять, за счет чего растет общий график наград)
+            statsRecorder.Add("Rewards/StepReward", stepReward); // Награда за конкретный шаг (может быть отрицательной)
+            statsRecorder.Add("Rewards/CumulativeReward", GetCumulativeReward()); // Накопленная награда за текущий эпизод
+
+            // Расстояние до старта с мячом (показывает, пытается ли он вернуться назад)
+            if (hasBall)
+            {
+                statsRecorder.Add("Rewards/ReturnDistanceToStart", Vector3.Distance(transform.position, startPosition));
+            }
+
+            if (cameraSensor.ballVisible && ball != null)
+            {
+                float trueDist = Vector3.Distance(transform.position, ball.position);
+                float cameraError = Mathf.Abs(cameraSensor.normalizedDistance - Mathf.Clamp01(trueDist / maxArenaDistance));
+                statsRecorder.Add("Sensors/CameraDistanceError", cameraError);
+            }
+        }
+
+    }
+
+    public override void Heuristic(in ActionBuffers actionsOut)
 {
     var continuous = actionsOut.ContinuousActions;
     var discrete = actionsOut.DiscreteActions;
