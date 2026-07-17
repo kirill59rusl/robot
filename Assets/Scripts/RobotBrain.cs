@@ -109,16 +109,13 @@ public class RobotBrain : Agent
         rb.angularVelocity = Vector3.zero;
         
 
-        var obj = GameObject.FindGameObjectWithTag("TargetBall");
-        if (obj != null)
+        ball = mazeGenerator.GetBall();
+
+        if (ball == null)
         {
-            ball = obj.transform;
-            
+            Debug.LogError("Ball not found!");
         }
-        else
-        {
-            Debug.LogError("TargetBall not found!");
-        }
+        
         
         goalCube = mazeGenerator.GetGoal();
 
