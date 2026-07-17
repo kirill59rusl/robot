@@ -407,6 +407,9 @@ public class MazeGenerator : MonoBehaviour
 {
     return startCube.transform;
 }
+    public Transform GetBall(){
+        return ballObject.transform;
+    }
 
     private void ClearMaze()
     {
