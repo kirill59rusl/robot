@@ -1,0 +1,29 @@
+{
+    "GFSX_Brain": {
+        "checkpoints": [
+            {
+                "steps": 159787,
+                "file_path": "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-159787.onnx",
+                "reward": -40.590742095311484,
+                "creation_time": 1784279120.2379544,
+                "auxillary_file_paths": [
+                    "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-159787.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 159787,
+            "file_path": "results\\my_thr_run\\GFSX_Brain.onnx",
+            "reward": -40.590742095311484,
+            "creation_time": 1784279120.2379544,
+            "auxillary_file_paths": [
+                "results\\my_thr_run\\GFSX_Brain\\GFSX_Brain-159787.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.1+cpu"
+    }
+}

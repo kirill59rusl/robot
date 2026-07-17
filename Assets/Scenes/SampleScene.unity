@@ -534,6 +534,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6096533880378768035, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 5022602860645237092, guid: e9902b88b40192b4f9a71c0c8cb8a888, type: 3}
+    - target: {fileID: 6096533880378768035, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene

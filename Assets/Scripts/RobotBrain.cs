@@ -109,16 +109,13 @@ public class RobotBrain : Agent
         rb.angularVelocity = Vector3.zero;
         
 
-        var obj = GameObject.FindGameObjectWithTag("TargetBall");
-        if (obj != null)
+        ball = mazeGenerator.GetBall();
+
+        if (ball == null)
         {
-            ball = obj.transform;
-            
+            Debug.LogError("Ball not found!");
         }
-        else
-        {
-            Debug.LogError("TargetBall not found!");
-        }
+        
         
         goalCube = mazeGenerator.GetGoal();
 
@@ -159,9 +156,9 @@ public class RobotBrain : Agent
             //    $"BallDist={cameraSensor.normalizedDistance:F2}"
             //    
             //);
-            //Debug.Log(
-            //    $"Total: {GetCumulativeReward():0.000}"
-            //);
+            Debug.Log(
+                $"Total: {GetCumulativeReward():0.000}"
+            );
 
         }
         sensor.AddObservation(
@@ -347,17 +344,18 @@ public class RobotBrain : Agent
 
     rewardSystem.StepPenalty();
 
-    if (ball != null)
+    if (ball != null && !hasBall)
     {
         float currentDistance = Vector3.Distance(transform.position, ball.position);
         rewardSystem.DistanceReward(previousDistanceToBall, currentDistance);
         previousDistanceToBall = currentDistance;
+        if (cameraSensor.ballVisible)
+        {
+            rewardSystem.BallVisible(cameraSensor.horizontalOffset, currentDistance);
+        }
     }
 
-    if (cameraSensor.ballVisible)
-    {
-        rewardSystem.BallVisible(cameraSensor.horizontalOffset);
-    }
+    
 
     rewardSystem.WallPenalty(
         sensors.ultrasonic,
@@ -383,7 +381,7 @@ public class RobotBrain : Agent
     {
         float dist = Vector3.Distance(transform.position, goalCube.position);
         rewardSystem.GoalApproach(dist);
-        if (dist < 0.6f)
+        if (dist < 0.55f)
         {
             rewardSystem.GoalReached();
             EndEpisode();
@@ -401,7 +399,7 @@ public override void Heuristic(in ActionBuffers actionsOut)
 {
     var continuous = actionsOut.ContinuousActions;
     var discrete = actionsOut.DiscreteActions;
-
+    
     var keyboard = Keyboard.current;
 
     if (keyboard == null)
