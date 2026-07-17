@@ -537,18 +537,22 @@ PrefabInstance:
     - target: {fileID: 6096533880378768035, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Model
       value: 
-      objectReference: {fileID: 5022602860645237092, guid: e9902b88b40192b4f9a71c0c8cb8a888, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 6096533880378768035, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_BehaviorType
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene
       objectReference: {fileID: 0}
+    - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+      propertyPath: rewardSettings.distanceRewardMultiplier
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 8991021445614112832, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Constraints
-      value: 84
+      value: 80
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

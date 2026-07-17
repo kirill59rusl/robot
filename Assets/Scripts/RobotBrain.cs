@@ -387,7 +387,15 @@ public class RobotBrain : Agent
             EndEpisode();
         }
     }
-
+    if (ball != null)
+        {
+            if (ball.position.y < -1f)
+            {
+                AddReward(-1.0f);   // или rewardSystem.BallLost();
+                EndEpisode();
+                return;
+            }
+}
     if (transform.position.y < -0.2f)
     {
         rewardSystem.Fell();
