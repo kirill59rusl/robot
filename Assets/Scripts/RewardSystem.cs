@@ -89,4 +89,14 @@ public class RewardSystem
     {
         agent.AddReward(settings.fallPenalty);
     }
+    public void BoxCollision()
+    {
+        agent.AddReward(settings.boxCollisionPenalty);
+    }
+
+    public void BoxPushed(float distanceMoved, float boxMass)
+    {
+        agent.AddReward(settings.boxPushPenalty * distanceMoved * boxMass);
+    }
+
 }
