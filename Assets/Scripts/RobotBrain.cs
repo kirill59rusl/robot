@@ -44,6 +44,7 @@ public class RobotBrain : Agent
     float lastKnownBallAngle = 0f;
     float timeSinceBallSeen = 0f;
 
+    const float observationNoise = 0.02f;
     // Arena size
     const float maxArenaDistance = 1.5f;
 
@@ -90,6 +91,7 @@ public class RobotBrain : Agent
 
     public override void OnEpisodeBegin()
     {   
+        
         rewardSystem.Reset();
         if (gripper != null && gripper.HasBall())
         {
@@ -111,7 +113,7 @@ public class RobotBrain : Agent
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         
-
+        trackController.RandomizePhysics();
         ball = mazeGenerator.GetBall();
 
         if (ball == null)
@@ -139,7 +141,10 @@ public class RobotBrain : Agent
         holdTicks = 0;
     }
 
-    
+    float Noise(float value, float sigma=observationNoise)
+    {
+        return value + Random.Range(-sigma, sigma);
+    }
 
     public override void CollectObservations(VectorSensor sensor)
     {
@@ -165,7 +170,7 @@ public class RobotBrain : Agent
 
         }
         sensor.AddObservation(
-            Mathf.Clamp01(sensors.ultrasonic / sensors.ultrasonicRange)
+            Mathf.Clamp01(Noise(sensors.ultrasonic / sensors.ultrasonicRange))
         );
 
         //-----------------------------------
@@ -173,11 +178,11 @@ public class RobotBrain : Agent
         //-----------------------------------
 
         sensor.AddObservation(
-            Mathf.Clamp01(sensors.leftIR / sensors.irRange)
+            Mathf.Clamp01(Noise(sensors.leftIR / sensors.irRange))
         );
 
         sensor.AddObservation(
-            Mathf.Clamp01(sensors.rightIR / sensors.irRange)
+            Mathf.Clamp01(Noise(sensors.rightIR / sensors.irRange))
         );
 
         //-----------------------------------
@@ -185,25 +190,33 @@ public class RobotBrain : Agent
         //-----------------------------------
 
         sensor.AddObservation(
-            Mathf.Clamp01(sensors.gripperIR / sensors.gripperRange)
+            Mathf.Clamp01(Noise(sensors.gripperIR / sensors.gripperRange))
         );
 
         //-----------------------------------
         // Camera
         //-----------------------------------
 
-        if (cameraSensor != null && cameraSensor.ballVisible)
+        if (cameraSensor != null && cameraSensor.ballVisible && Random.value>0.03f)
         {
-            sensor.AddObservation(cameraSensor.horizontalOffset);
 
-            sensor.AddObservation(cameraSensor.normalizedDistance);
+            sensor.AddObservation(Mathf.Clamp01(Noise(cameraSensor.normalizedDistance)));
 
-            lastKnownBallAngle =
-                cameraSensor.horizontalOffset;
+            float measuredAngle = Mathf.Clamp(
+                Noise(cameraSensor.horizontalOffset, 0.03f),
+                -1f,
+                1f);
+
+            sensor.AddObservation(measuredAngle);
+
+            lastKnownBallAngle = measuredAngle;
 
             timeSinceBallSeen = 0f;
 
-            sensor.AddObservation(lastKnownBallAngle);
+            sensor.AddObservation(Mathf.Clamp(
+                Noise(lastKnownBallAngle, 0.03f),
+                -1f,
+                1f));
 
             sensor.AddObservation(1f);
         }
@@ -213,7 +226,10 @@ public class RobotBrain : Agent
 
             sensor.AddObservation(1f);
 
-            sensor.AddObservation(lastKnownBallAngle);
+            sensor.AddObservation(Mathf.Clamp(
+                Noise(lastKnownBallAngle, 0.03f),
+                -1f,
+                1f));
 
             sensor.AddObservation(0f);
 
@@ -224,7 +240,10 @@ public class RobotBrain : Agent
         // Camera servo
         //-----------------------------------
 
-        sensor.AddObservation(cameraPan.CurrentAngle / cameraPan.maxAngle);
+        sensor.AddObservation(Mathf.Clamp(
+            Noise(cameraPan.CurrentAngle / cameraPan.maxAngle),
+            -1f,
+            1f));
 
         //-----------------------------------
         // Has ball
@@ -240,11 +259,11 @@ public class RobotBrain : Agent
             transform.position - startPosition;
 
         sensor.AddObservation(
-            Mathf.Clamp(delta.x / maxArenaDistance, -1f, 1f)
+            Mathf.Clamp(Noise(delta.x / maxArenaDistance), -1f, 1f)
         );
 
         sensor.AddObservation(
-            Mathf.Clamp(delta.z / maxArenaDistance, -1f, 1f)
+            Mathf.Clamp(Noise(delta.z / maxArenaDistance), -1f, 1f)
         );
 
         //-----------------------------------
@@ -254,14 +273,18 @@ public class RobotBrain : Agent
         float heading =
             Mathf.Sin(transform.eulerAngles.y * Mathf.Deg2Rad);
 
-        sensor.AddObservation(heading);
+        sensor.AddObservation(
+            Mathf.Clamp(
+                Noise(heading, 0.01f),
+                -1f,
+                1f));
 
         //-----------------------------------
         // Speed
         //-----------------------------------
 
         sensor.AddObservation(
-            rb.linearVelocity.magnitude / maxRobotSpeed
+            Mathf.Clamp01(Noise(rb.linearVelocity.magnitude / maxRobotSpeed))
         );
 
         //-----------------------------------
@@ -269,7 +292,7 @@ public class RobotBrain : Agent
         //-----------------------------------
 
         sensor.AddObservation(
-            Mathf.Clamp01(timeSinceBallSeen / 10f)
+            Mathf.Clamp01(Noise(timeSinceBallSeen / 10f))
         );
     } 
 
@@ -361,6 +384,7 @@ public class RobotBrain : Agent
             rewardSystem.BallVisible(
                 cameraSensor.horizontalOffset,
                 currentDistance);
+            Debug.Log("hui");
         }
         else
         {

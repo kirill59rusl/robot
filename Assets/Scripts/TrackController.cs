@@ -39,6 +39,19 @@ public class TrackController : MonoBehaviour
     private float prevLeftPwm;
     private float prevRightPwm;
 
+    [Header("Domain Randomization")]
+    [SerializeField] Vector2 moveSpeedRange = new(0.5f, 0.65f);
+    [SerializeField] Vector2 turnSpeedRange = new(100f, 140f);
+    [SerializeField] Vector2 frictionRange = new(0.8f, 1.2f);
+    
+    public void RandomizePhysics()
+    {
+        moveSpeed = Random.Range(moveSpeedRange.x, moveSpeedRange.y);
+        turnSpeed = Random.Range(turnSpeedRange.x, turnSpeedRange.y);
+    
+        rb.linearDamping = Random.Range(7f,11f);
+        rb.angularDamping = Random.Range(7f,11f);
+    }
 
  
     private void Awake()
