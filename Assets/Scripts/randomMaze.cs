@@ -13,7 +13,7 @@ public class MazeGenerator : MonoBehaviour
     [Header("Параметры генерации")]
     [SerializeField] private int obstacleCount = 30;
     [SerializeField] private float minDistanceFromStart = 0.5f;
-    [SerializeField] private float maxDistanceFromBallToStart = 1.5f;
+    
     [SerializeField] private float minDistanceBetweenObstacles = 0.5f;
     [SerializeField] private float minDistanceFromEdge = 0.2f;
     [SerializeField] private float ballRadius = 0.04f;
@@ -21,7 +21,7 @@ public class MazeGenerator : MonoBehaviour
     [Header("Параметры шарика")]
     [SerializeField] private float minDistanceFromBallToObstacle = 0.3f; // Минимальное расстояние от шарика до препятствий
     [SerializeField] private float minDistanceFromBallToStart = 0.4f; // Минимальное расстояние от шарика до старта
-    
+    [SerializeField] private float maxDistanceFromBallToStart = 1.5f;
     
     [Header("Размеры (если не заданы в префабе)")]
     [SerializeField] private Vector2 groundSize = new Vector2(0.7f, 0.6f);

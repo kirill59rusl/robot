@@ -90,6 +90,7 @@ public class RobotBrain : Agent
 
     public override void OnEpisodeBegin()
     {   
+        rewardSystem.Reset();
         if (gripper != null && gripper.HasBall())
         {
             gripper.Release();
@@ -352,16 +353,33 @@ public class RobotBrain : Agent
 
     if (ball != null && !hasBall)
     {
-        float currentDistance = Vector3.Distance(transform.position, ball.position);
-        rewardSystem.DistanceReward(previousDistanceToBall, currentDistance);
-        previousDistanceToBall = currentDistance;
+        float currentDistance =
+            Vector3.Distance(transform.position, ball.position);
+
         if (cameraSensor.ballVisible)
         {
-            rewardSystem.BallVisible(cameraSensor.horizontalOffset, currentDistance);
+            rewardSystem.BallVisible(
+                cameraSensor.horizontalOffset,
+                currentDistance);
         }
+        else
+        {
+            rewardSystem.DistanceReward(
+                previousDistanceToBall,
+                currentDistance);
+        }
+
+        previousDistanceToBall = currentDistance;
     }
 
-    
+    float linearSpeed = rb.linearVelocity.magnitude;
+    float angularSpeed = rb.angularVelocity.y;
+    rewardSystem.RotationPenalty(
+        linearSpeed,
+        angularSpeed
+    );
+
+    rewardSystem.SteeringSwitchPenalty(steering);
 
     rewardSystem.WallPenalty(
         sensors.ultrasonic,
@@ -383,6 +401,8 @@ public class RobotBrain : Agent
         rewardForPickupGiven = true;
     }
 
+
+    
     if (hasBall && goalCube != null)
     {
         float dist = Vector3.Distance(transform.position, goalCube.position);
@@ -391,6 +411,7 @@ public class RobotBrain : Agent
         {
             rewardSystem.GoalReached();
             EndEpisode();
+            return;
         }
     }
     if (ball != null)
@@ -406,6 +427,7 @@ public class RobotBrain : Agent
     {
         rewardSystem.Fell();
         EndEpisode();
+        return;
     }
     stepReward = GetCumulativeReward() - rewardBefore;
 

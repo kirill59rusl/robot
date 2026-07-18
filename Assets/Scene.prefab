@@ -62,8 +62,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 111112060434989001}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.goalApproachReward
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.distanceRewardMultiplier
-      value: 0.6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: maxDistance
@@ -205,6 +209,14 @@ PrefabInstance:
     - target: {fileID: 4613036868295651386, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: obstacleCount
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: maxDistanceFromBallToStart
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
