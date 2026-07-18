@@ -32,14 +32,16 @@ public class RealVision : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("start");
         cts = new CancellationTokenSource();
         // Запуск UDP-слушателя в фоновом потоке, чтобы не вешать игру
-        Task.Run(() => UdpListenerLoop(cts.Token));
+        _ = UdpListenerLoop(cts.Token);
         Debug.Log($"[RealVision] Слушаю UDP порт {udpPort} для YOLO");
     }
 
     private async Task UdpListenerLoop(CancellationToken token)
     {
+        Debug.Log("RV udplistener");
         using (var udpClient = new UdpClient(udpPort))
         {
             while (!token.IsCancellationRequested)
@@ -48,7 +50,7 @@ public class RealVision : MonoBehaviour
                 {
                     var result = await udpClient.ReceiveAsync();
                     string json = System.Text.Encoding.UTF8.GetString(result.Buffer);
-
+                    Debug.Log(json);
                     YoloDataPacket packet = JsonUtility.FromJson<YoloDataPacket>(json);
                     if (packet != null)
                     {

@@ -45,17 +45,41 @@ PrefabInstance:
       propertyPath: m_Name
       value: robotAgent
       objectReference: {fileID: 0}
+    - target: {fileID: 1322264039066847826, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rosBridge
+      value: 
+      objectReference: {fileID: 7696283471753021205}
     - target: {fileID: 2398567839079389820, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: near clip plane
       value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: turnK
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rosBridge
       value: 
       objectReference: {fileID: 7696283471753021205}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: turnSpeed
+      value: 215
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: maxLinearCmd
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: useRealRobot
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2934687937321737502, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Constraints
       value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: MaxStep
+      value: 50000
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: mazeGenerator
@@ -132,6 +156,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7696283471753021205}
+    - targetCorrespondingSourceObject: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 438081273454709660}
   m_SourcePrefab: {fileID: 100100000, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
 --- !u!4 &1709264521144750882 stripped
 Transform:
@@ -158,6 +185,23 @@ MonoBehaviour:
   cmdVelTopic: /cmd_vel
   gripperTopic: /cmd_gripper
   cameraTopic: /cmd_camera_pan
+--- !u!114 &438081273454709660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4953172232079785222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95e9bba0e8e1f80438d151617fb70706, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RealVision
+  udpPort: 5005
+  useYOLO: 1
+  normalizedAngle: 0
+  normalizedDistance: 0
+  seesBall: 0
 --- !u!1001 &8526257670425749306
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -211,8 +255,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: groundSize.x
+      value: 0.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: groundSize.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
       propertyPath: obstacleCount
-      value: 100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
       propertyPath: maxDistanceFromBallToStart

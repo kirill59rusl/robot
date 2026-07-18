@@ -136,7 +136,6 @@ public class TrackController : MonoBehaviour
             if (rosBridge != null)
                 rosBridge.SendVelocity(g, s);
         
-            return;
         }
  
         float leftPwm =

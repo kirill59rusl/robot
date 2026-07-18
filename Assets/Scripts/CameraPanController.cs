@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class CameraPanController : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class CameraPanController : MonoBehaviour
 
         targetAngle = 0f;
         currentAngle = 0f;
+        if (rosBridge != null) rosBridge.SendCamera(-0.3f);
     }
 
     /// <summary>
@@ -49,7 +51,8 @@ public class CameraPanController : MonoBehaviour
         // Отправляем угол на реального робота
         if (rosBridge != null)
         {
-            float normalized = currentAngle / maxAngle; // -1..1
+            float normalized = -0.3f + currentAngle / maxAngle; // -1..1
+            normalized=Mathf.Clamp(normalized,-1, 0.4f);
             rosBridge.SendCamera(normalized);
         }
     }
