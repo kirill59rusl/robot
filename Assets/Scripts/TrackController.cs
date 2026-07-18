@@ -21,15 +21,15 @@ using UnityEngine.InputSystem;
 public class TrackController : MonoBehaviour
 {
     [Header("Калибровка")]
-    public float moveSpeed = 1f;
+    public float moveSpeed = 1.5f;
     public float turnSpeed = 120f;
     [Range(0f, 1f)]
-    public float turnK = 0.30f;
+    public float turnK = 0.60f;
 
-    public float maxLinearCmd = 0.25f;
+    public float maxLinearCmd = 1f;
 
     [Header("PWM")]
-    public float speedToPwm = 200f;
+    public float speedToPwm = 100f;
     public float motorDeadzone = 30f;
     public float minMotorPwm = 50f;
     public float maxPwmStep = 15f;
@@ -318,10 +318,17 @@ public class TrackController : MonoBehaviour
         float linear =
             g * effectiveMaxSpeed;
 
+        // считаем turn от того же эффективного предела, что и linear,
+        // иначе при moveSpeed >> maxLinearCmd поворот "перебивает" газ:
+        // одна гусеница уходит в минус, средняя скорость проседает
+        // (именно поэтому W+D было медленнее, чем W или D по отдельности)
+        float effectiveMaxSpeedForTurn =
+            Mathf.Min(moveSpeed, maxLinearCmd);
+
         float turn =
             s *
             turnK *
-            moveSpeed;
+            effectiveMaxSpeedForTurn;
 
         vLeft =
             Mathf.Clamp(
@@ -339,15 +346,13 @@ public class TrackController : MonoBehaviour
     }
 
     private float ApplyMotorModel(
-        float rawPwm,
-        ref float previous
-    )
+    float rawPwm,
+    ref float previous
+)
     {
-        float sign =
-            Mathf.Sign(rawPwm);
+        float sign = Mathf.Sign(rawPwm);
 
-        float mag =
-            Mathf.Abs(rawPwm);
+        float mag = Mathf.Abs(rawPwm);
 
         if (mag < motorDeadzone)
         {
@@ -358,21 +363,15 @@ public class TrackController : MonoBehaviour
             mag = minMotorPwm;
         }
 
-        mag =
-            Mathf.Min(
-                mag,
-                100f
-            );
+        mag = Mathf.Min(mag, speedToPwm);
 
-        float target =
-            sign * mag;
+        float target = sign * mag;
 
-        previous +=
-            Mathf.Clamp(
-                target - previous,
-                -maxPwmStep,
-                maxPwmStep
-            );
+        previous += Mathf.Clamp(
+            target - previous,
+            -maxPwmStep,
+            maxPwmStep
+        );
 
         return previous;
     }
