@@ -114,7 +114,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2934687937321737502, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Constraints
-      value: 80
+      value: 84
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: mazeGenerator

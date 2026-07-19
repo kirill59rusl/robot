@@ -11,10 +11,15 @@ public class MazeGenerator : MonoBehaviour
     
     
     [Header("Параметры генерации")]
-    [SerializeField] private int obstacleCount = 30;
-    [SerializeField] private float minDistanceFromStart = 0.5f;
-    [SerializeField] private float maxDistanceFromBallToStart = 1.5f;
-    [SerializeField] private float minDistanceBetweenObstacles = 0.5f;
+    [SerializeField] private bool randomizeObstacleCount = true;
+
+    [SerializeField] private int minObstacleCount = 15;
+    [SerializeField] private int maxObstacleCount = 40;
+
+    [SerializeField] private int obstacleCount = 30; // используется, если randomization выключен
+    [SerializeField] private float minDistanceFromStart = 0.9f;
+    [SerializeField] private float maxDistanceFromBallToStart = 10f;
+    [SerializeField] private float minDistanceBetweenObstacles = 0.6f;
     [SerializeField] private float minDistanceFromEdge = 0.2f;
     [SerializeField] private float ballRadius = 0.04f;
     
@@ -30,6 +35,7 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] private float cubeScale = 0.08f;
     
     // Приватные переменные
+    private int currentObstacleCount;
     private GameObject groundPlane;
     private Vector3 groundSizeWorld;
     private List<Vector3> obstaclePositions = new List<Vector3>();
@@ -48,7 +54,14 @@ public class MazeGenerator : MonoBehaviour
     public void GenerateMaze()
     {
         ClearMaze();
-        
+        if (randomizeObstacleCount)
+        {
+            currentObstacleCount = Random.Range(minObstacleCount, maxObstacleCount + 1);
+        }
+        else
+        {
+            currentObstacleCount = obstacleCount;
+        }
         CreateGround();
         
         MeshRenderer groundRenderer = groundPlane.GetComponent<MeshRenderer>();
@@ -56,7 +69,7 @@ public class MazeGenerator : MonoBehaviour
         
         obstaclesParent = new GameObject("Obstacles").transform;
         obstaclesParent.parent = transform;
-        
+        minDistanceBetweenObstacles *= Random.Range(0.8f, 1.5f);
         availablePositions = GetAvailablePositions();
         
         if (availablePositions.Count < 5)
@@ -114,24 +127,27 @@ public class MazeGenerator : MonoBehaviour
 
     availablePositions.RemoveAt(randomIndex);
 
-    // Смещения, на которых можно поставить кубик
-    Vector3[] offsets =
-    {
-        new Vector3(0.5f, 0, 0),
-        new Vector3(-0.5f, 0, 0),
-        new Vector3(0, 0, 0.5f),
-        new Vector3(0, 0, -0.5f)
-    };
+    float minOffset = 0.4f;   // минимальное расстояние от робота
+    float maxOffset = 0.8f;   // максимальное расстояние
+
+    float halfWidth = groundSizeWorld.x / 2 - minDistanceFromEdge;
+    float halfDepth = groundSizeWorld.z / 2 - minDistanceFromEdge;
+
+    const int maxAttempts = 50;
 
     startCubePosition = startPosition;
 
-    foreach (Vector3 offset in offsets)
+    for (int i = 0; i < maxAttempts; i++)
     {
-        Vector3 candidate = startPosition + offset;
+        // Случайное направление
+        Vector2 dir = Random.insideUnitCircle.normalized;
 
-        float halfWidth = groundSizeWorld.x / 2 - minDistanceFromEdge;
-        float halfDepth = groundSizeWorld.z / 2 - minDistanceFromEdge;
+        // Случайное расстояние
+        float distance = Random.Range(minOffset, maxOffset);
 
+        Vector3 candidate = startPosition + new Vector3(dir.x, 0f, dir.y) * distance;
+
+        // Проверяем, что точка находится в пределах поля
         if (Mathf.Abs(candidate.x) > halfWidth ||
             Mathf.Abs(candidate.z) > halfDepth)
             continue;
@@ -154,16 +170,15 @@ public class MazeGenerator : MonoBehaviour
 }
     
     
-    
     private void GenerateObstacles()
     {
         int attempts = 0;
-        int maxAttempts = obstacleCount * 100;
+        int maxAttempts = currentObstacleCount * 100;
         int placedCount = 0;
         
         List<Vector3> availableForObstacles = new List<Vector3>(availablePositions);
         
-        while (placedCount < obstacleCount && attempts < maxAttempts && availableForObstacles.Count > 0)
+        while (placedCount < currentObstacleCount && attempts < maxAttempts && availableForObstacles.Count > 0)
         {
             attempts++;
             
@@ -233,7 +248,7 @@ public class MazeGenerator : MonoBehaviour
             placedCount++;
         }
         
-        if (placedCount < obstacleCount)
+        if (placedCount < currentObstacleCount)
         {
             Debug.LogWarning($"Удалось разместить только {placedCount} препятствий из {obstacleCount} запрошенных");
         }
