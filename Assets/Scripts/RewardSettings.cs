@@ -27,7 +27,7 @@ public class RewardSettings
     [Header("Collisions")]
     public float wallCollisionPenalty = -0.20f;
     public float obstacleCollisionPenalty = -0.15f;
-    public float boxCollisionPenalty = -0.10f;
+    public float ballCollisionPenalty = -0.10f;
 
     [Header("Driving")]
     public float steeringPenalty = -0.0005f;

@@ -494,18 +494,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 111112060434989001, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: minDistanceFromStart
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 111112060434989001, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: maxDistanceFromBallToStart
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 111112060434989001, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: minDistanceFromBallToObstacle
-      value: 0.4
-      objectReference: {fileID: 0}
     - target: {fileID: 3520785146427592773, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.51
@@ -551,16 +539,16 @@ PrefabInstance:
       value: Scene
       objectReference: {fileID: 0}
     - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rewardSettings.ballProgressReward
-      value: 0.4
+      propertyPath: addSensorNoise
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rewardSettings.homeProgressReward
-      value: 0.6
+      propertyPath: rewardSettings.ballCollisionPenalty
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: rewardSettings.obstacleCollisionPenalty
-      value: -5
+      value: -8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

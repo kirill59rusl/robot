@@ -166,8 +166,8 @@ public class RewardSystem
         agent.AddReward(settings.obstacleCollisionPenalty);
     }
 
-    public void BoxCollision()
+    public void BallCollision()
     {
-        agent.AddReward(settings.boxCollisionPenalty);
+        agent.AddReward(settings.ballCollisionPenalty);
     }
 }

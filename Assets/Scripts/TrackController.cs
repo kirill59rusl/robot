@@ -67,12 +67,33 @@ public class TrackController : MonoBehaviour
     [Header("ROS")]
     public bool useRealRobot = false;
     public RosBridge rosBridge;
+    [Header("Domain Randomization")]
+    public bool enableDomainRandomization = true;
 
+    [Range(0f,0.5f)]
+    public float speedVariation = 0.15f;
+
+    [Range(0f,0.5f)]
+    public float turnVariation = 0.15f;
+
+    [Range(0f,0.5f)]
+    public float frictionVariation = 0.30f;
+
+    [Range(0f,0.5f)]
+    public float motorVariation = 0.20f;
+    [Header("Track mismatch (Domain Randomization)")]
+
+    public bool randomizeTracks = true;
+
+    [Tooltip("Максимальное отличие эффективности одной гусеницы")]
+    [Range(0f,0.3f)]
+    public float trackMismatch = 0.10f;
     private Rigidbody rb;
 
     private float prevLeftPwm;
     private float prevRightPwm;
-
+    private float leftTrackGain = 1f;
+    private float rightTrackGain = 1f;
     // текущая продольная и боковая (заносная) скорость - для инерции/дрифта
     private float currentLongitudinalVel;
     private float currentLateralVel;
@@ -82,7 +103,16 @@ public class TrackController : MonoBehaviour
 
     // сиды шума для каждого экземпляра, чтобы разные машины "гуляли" по-разному
     private float noiseSeed;
+    private float baseMoveSpeed;
+    private float baseTurnSpeed;
 
+    private float baseRollingFriction;
+    private float baseLateralFriction;
+    private float baseDriftFactor;
+
+    private float baseMotorDeadzone;
+    private float baseMinMotorPwm;
+    private float baseMaxPwmStep;
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -101,6 +131,18 @@ public class TrackController : MonoBehaviour
             RigidbodyConstraints.FreezeRotationZ;
 
         noiseSeed = Random.Range(0f, 1000f);
+        baseMoveSpeed = moveSpeed;
+        baseTurnSpeed = turnSpeed;
+
+        baseRollingFriction = rollingFriction;
+        baseLateralFriction = lateralFriction;
+        baseDriftFactor = driftFactor;
+
+        baseMotorDeadzone = motorDeadzone;
+        baseMinMotorPwm = minMotorPwm;
+        baseMaxPwmStep = maxPwmStep;
+
+        RandomizeDomain();
     }
 
     private void Update()
@@ -177,10 +219,10 @@ public class TrackController : MonoBehaviour
             );
 
         float effLeft =
-            leftPwm / speedToPwm;
-
+            (leftPwm / speedToPwm) * leftTrackGain;
+        
         float effRight =
-            rightPwm / speedToPwm;
+            (rightPwm / speedToPwm) * rightTrackGain;
 
         float v =
             0.5f *
@@ -398,4 +440,79 @@ public class TrackController : MonoBehaviour
                 vRight * speedToPwm,
                 ref prevRightPwm);
     }
+    public void RandomizeDomain()
+{
+    if (!enableDomainRandomization)
+        return;
+    if (!randomizeTracks)
+    {
+        leftTrackGain = 1f;
+        rightTrackGain = 1f;
+        return;
+    }
+
+    leftTrackGain =
+        Random.Range(
+            1f - trackMismatch,
+            1f + trackMismatch);
+
+    rightTrackGain =
+        Random.Range(
+            1f - trackMismatch,
+            1f + trackMismatch);
+
+    moveSpeed =
+        baseMoveSpeed *
+        Random.Range(
+            1f - speedVariation,
+            1f + speedVariation);
+
+    turnSpeed =
+        baseTurnSpeed *
+        Random.Range(
+            1f - turnVariation,
+            1f + turnVariation);
+
+    rollingFriction =
+        baseRollingFriction *
+        Random.Range(
+            1f - frictionVariation,
+            1f + frictionVariation);
+
+    lateralFriction =
+        baseLateralFriction *
+        Random.Range(
+            1f - frictionVariation,
+            1f + frictionVariation);
+
+    driftFactor =
+        baseDriftFactor *
+        Random.Range(
+            1f - frictionVariation,
+            1f + frictionVariation);
+
+    motorDeadzone =
+        baseMotorDeadzone *
+        Random.Range(
+            1f - motorVariation,
+            1f + motorVariation);
+
+    minMotorPwm =
+        baseMinMotorPwm *
+        Random.Range(
+            1f - motorVariation,
+            1f + motorVariation);
+
+    maxPwmStep =
+        baseMaxPwmStep *
+        Random.Range(
+            1f - motorVariation,
+            1f + motorVariation);
+
+    randomYawNoiseStrength =
+        Random.Range(1f,5f);
+
+    noiseSeed =
+        Random.Range(0f,10000f);
+}
 }
