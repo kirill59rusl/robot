@@ -20,23 +20,23 @@ public class RobotBrain : Agent
     private RewardSettings rewardSettings = new();
 
     private RewardSystem rewardSystem;
-    bool rewardForPickupGiven;
 
     Rigidbody rb;
 
     Vector3 startPosition;
     Quaternion startRotation;
     float debugTimer;
-    float previousDistanceToBall;
-    float previousGas;
     float previousSteer;
-    
+    private bool previousHasBall;
+
     float episodeTimer;
 
     bool hasBall;
     int holdTicks;        // ������� ����� ������ ������������ ������ (���� �����)
     float stepReward;      // ������� �� ������� ���
+    
 
+    
     Transform goalCube;
     Transform ball;
 
@@ -45,7 +45,7 @@ public class RobotBrain : Agent
     float timeSinceBallSeen = 0f;
 
     // Arena size
-    const float maxArenaDistance = 1.5f;
+    const float maxArenaDistance = 6f;
 
 
     // Maximum robot speed
@@ -121,11 +121,22 @@ public class RobotBrain : Agent
         
         goalCube = mazeGenerator.GetGoal();
 
-        previousDistanceToBall =
-            Vector3.Distance(transform.position, ball.position);
+        
+        previousHasBall = false;
 
-        rewardForPickupGiven = false;
-        previousGas = 0;
+
+        rewardSystem.Reset(
+            Vector3.Distance(
+                transform.position,
+                ball.transform.position
+            ),
+            Vector3.Distance(
+                transform.position,
+                goalCube.transform.position
+            )
+        );
+        
+        
         previousSteer = 0;
 
         episodeTimer = 0;
@@ -231,29 +242,6 @@ public class RobotBrain : Agent
 
         sensor.AddObservation(hasBall ? 1f : 0f);
 
-        //-----------------------------------
-        // Ego position
-        //-----------------------------------
-
-        Vector3 delta =
-            transform.position - startPosition;
-
-        sensor.AddObservation(
-            Mathf.Clamp(delta.x / maxArenaDistance, -1f, 1f)
-        );
-
-        sensor.AddObservation(
-            Mathf.Clamp(delta.z / maxArenaDistance, -1f, 1f)
-        );
-
-        //-----------------------------------
-        // Heading
-        //-----------------------------------
-
-        float heading =
-            Mathf.Sin(transform.eulerAngles.y * Mathf.Deg2Rad);
-
-        sensor.AddObservation(heading);
 
         //-----------------------------------
         // Speed
@@ -272,7 +260,29 @@ public class RobotBrain : Agent
         );
     } 
 
+    private float lastCollisionTime;
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (Time.time - lastCollisionTime < 0.3f)
+            return;
+
+        if (collision.collider.CompareTag("Obstacle"))
+        {
+            rewardSystem.ObstacleCollision();
+            lastCollisionTime = Time.time;
+        }
+        if (collision.collider.CompareTag("Goal"))
+        {
+            rewardSystem.ObstacleCollision();
+            lastCollisionTime = Time.time;
+        }
+        if (collision.collider.CompareTag("TargetBall"))
+        {
+            rewardSystem.ObstacleCollision();
+            lastCollisionTime = Time.time;
+        }
+    }
     public override void OnActionReceived(ActionBuffers actions)
     {
         //Debug.Log("Action");
@@ -343,25 +353,60 @@ public class RobotBrain : Agent
             break;
     }
 
-    hasBall = gripper.HasBall();
-    if (hasBall)
-        holdTicks++;
-    else
-        holdTicks = 0;
-    rewardSystem.StepPenalty();
+    //-------------------------------------------------
+    // Current state
+    //-------------------------------------------------
 
-    if (ball != null && !hasBall)
+    hasBall = gripper.HasBall();
+
+    holdTicks = hasBall ? holdTicks + 1 : 0;
+
+    //-------------------------------------------------
+    // Base penalty
+    //-------------------------------------------------
+
+    rewardSystem.Step();
+
+    //-------------------------------------------------
+    // Progress BEFORE pickup
+    //-------------------------------------------------
+
+    if (!hasBall && ball != null)
     {
-        float currentDistance = Vector3.Distance(transform.position, ball.position);
-        rewardSystem.DistanceReward(previousDistanceToBall, currentDistance);
-        previousDistanceToBall = currentDistance;
+        float distance =
+            Vector3.Distance(
+                transform.position,
+                ball.position
+            );
+
+        rewardSystem.BallProgress(distance);
+
         if (cameraSensor.ballVisible)
         {
-            rewardSystem.BallVisible(cameraSensor.horizontalOffset, currentDistance);
+            rewardSystem.BallCentered(
+                cameraSensor.horizontalOffset
+            );
         }
     }
 
-    
+    //-------------------------------------------------
+    // Progress AFTER pickup
+    //-------------------------------------------------
+
+    if (hasBall && goalCube != null)
+    {
+        float distance =
+            Vector3.Distance(
+                transform.position,
+                goalCube.position
+            );
+
+        rewardSystem.GoalProgress(distance);
+    }
+
+    //-------------------------------------------------
+    // Walls
+    //-------------------------------------------------
 
     rewardSystem.WallPenalty(
         sensors.ultrasonic,
@@ -369,44 +414,84 @@ public class RobotBrain : Agent
         sensors.rightIR
     );
 
-    float change =
-        Mathf.Abs(gas - previousGas) +
-        Mathf.Abs(steering - previousSteer);
-    rewardSystem.SmoothDriving(change);
+    //-------------------------------------------------
+    // Smooth steering
+    //-------------------------------------------------
 
-    previousGas = gas;
+    rewardSystem.SteeringPenalty(
+        Mathf.Abs(steering - previousSteer)
+    );
+
     previousSteer = steering;
 
-    if (hasBall && !rewardForPickupGiven)
+    //-------------------------------------------------
+    // Pickup
+    //-------------------------------------------------
+
+    if (hasBall && !previousHasBall)
     {
-        rewardSystem.Pickup();
-        rewardForPickupGiven = true;
+        float dist =
+            Vector3.Distance(
+                transform.position,
+                goalCube.position
+            );
+
+        rewardSystem.Pickup(dist);
     }
+
+    //-------------------------------------------------
+    // Lost ball
+    //-------------------------------------------------
+
+    if (!hasBall && previousHasBall)
+    {
+        rewardSystem.BallLost();
+    }
+
+    //-------------------------------------------------
+    // Success
+    //-------------------------------------------------
 
     if (hasBall && goalCube != null)
     {
-        float dist = Vector3.Distance(transform.position, goalCube.position);
-        rewardSystem.GoalApproach(dist);
-        if (dist < 0.55f)
+        float distance =
+            Vector3.Distance(
+                transform.position,
+                goalCube.position
+            );
+
+        if (distance < 0.55f)
         {
             rewardSystem.GoalReached();
             EndEpisode();
+            return;
         }
     }
-    if (ball != null)
-        {
-            if (ball.position.y < -1f)
-            {
-                AddReward(-1.0f);   // или rewardSystem.BallLost();
-                EndEpisode();
-                return;
-            }
-}
+
+    //-------------------------------------------------
+    // Ball fell
+    //-------------------------------------------------
+
+    if (ball != null && ball.position.y < -1f)
+    {
+        rewardSystem.BallLost();
+        EndEpisode();
+        return;
+    }
+
+    //-------------------------------------------------
+    // Robot fell
+    //-------------------------------------------------
+
     if (transform.position.y < -0.2f)
     {
         rewardSystem.Fell();
         EndEpisode();
+        return;
     }
+
+    previousHasBall = hasBall;
+    
     stepReward = GetCumulativeReward() - rewardBefore;
 
         // --- ������ ���������� � TENSORBOARD (ML-AGENTS STATS RECORDER) ---

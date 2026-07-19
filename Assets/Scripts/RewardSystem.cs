@@ -5,98 +5,169 @@ public class RewardSystem
 {
     private readonly Agent agent;
     private readonly RewardSettings settings;
-    
+
+    private float bestBallDistance;
+    private float bestGoalDistance;
+
+    private bool initialized;
+
     public RewardSystem(Agent agent, RewardSettings settings)
     {
         this.agent = agent;
         this.settings = settings;
     }
 
-    public void StepPenalty()
+    public void Reset(float distanceToBall, float distanceToGoal)
+    {
+        bestBallDistance = distanceToBall;
+        bestGoalDistance = distanceToGoal;
+        initialized = true;
+    }
+
+    //-----------------------------------------
+    // Base
+    //-----------------------------------------
+
+    public void Step()
     {
         agent.AddReward(settings.stepPenalty);
     }
 
-    public void DistanceReward(float previousDistance, float currentDistance)
-    {
-        float delta = previousDistance - currentDistance;
-        agent.AddReward(delta * settings.distanceRewardMultiplier);
-    }
+    //-----------------------------------------
+    // Progress to ball
+    //-----------------------------------------
 
-    private float lastDistanceToBall = float.MaxValue;
-
-    public void BallVisible(float horizontalOffset, float currentDistance)
+    public void BallProgress(float currentDistance)
     {
-        // Награда только если расстояние до мяча уменьшается
-        if (currentDistance < lastDistanceToBall - 0.01f)
+        if (!initialized)
+            return;
+
+        if (currentDistance < bestBallDistance)
         {
-            float improvement = (lastDistanceToBall - currentDistance) / lastDistanceToBall;
-            agent.AddReward(
-                improvement * settings.distanceRewardMultiplier * 2f
-            );
+            float delta = bestBallDistance - currentDistance;
 
-            // Дополнительный бонус за центрирование при приближении
-            agent.AddReward(
-                (1f - Mathf.Abs(horizontalOffset)) * 
-                settings.centeredBallReward * 0.5f
-            );
+            agent.AddReward(delta * settings.ballProgressReward);
+
+            bestBallDistance = currentDistance;
         }
-        else if (currentDistance > lastDistanceToBall + 0.05f)
+    }
+
+    //-----------------------------------------
+    // Progress to home
+    //-----------------------------------------
+
+    public void GoalProgress(float currentDistance)
+    {
+        if (currentDistance < bestGoalDistance)
         {
-            // Штраф за отдаление от мяча
-            agent.AddReward(-0.001f);
+            float delta = bestGoalDistance - currentDistance;
+
+            agent.AddReward(delta * settings.homeProgressReward);
+
+            bestGoalDistance = currentDistance;
         }
-
-        lastDistanceToBall = currentDistance;
     }
 
-    public void WallPenalty(float ultrasonic, float leftIR, float rightIR)
+    //-----------------------------------------
+    // Camera
+    //-----------------------------------------
+
+    public void BallCentered(float horizontalOffset)
     {
-        if (ultrasonic < 0.20f)
-            agent.AddReward(settings.wallPenalty);
+        float reward =
+            (1f - Mathf.Abs(horizontalOffset))
+            * settings.centeredBallReward;
 
-        if (leftIR < 0.10f)
-            agent.AddReward(settings.wallPenalty);
-
-        if (rightIR < 0.10f)
-            agent.AddReward(settings.wallPenalty);
+        agent.AddReward(reward);
     }
 
-    public void SmoothDriving(float change)
-    {
-        agent.AddReward(change * settings.smoothDrivingPenalty);
-    }
+    //-----------------------------------------
+    // Pickup
+    //-----------------------------------------
 
-    public void Pickup()
+    public void Pickup(float currentDistanceToGoal)
     {
         agent.AddReward(settings.pickupReward);
+
+        bestGoalDistance = currentDistanceToGoal;
     }
 
-    public void GoalApproach(float distance)
-    {
-        agent.AddReward(
-            (1f - Mathf.Clamp01(distance / 3f))
-            * settings.goalApproachReward
-        );
-    }
+    //-----------------------------------------
+    // Goal
+    //-----------------------------------------
 
     public void GoalReached()
     {
         agent.AddReward(settings.goalReward);
     }
 
+    //-----------------------------------------
+    // Wall proximity
+    //-----------------------------------------
+
+    public void WallPenalty(float front,float left,float right)
+    {
+        float min =
+            Mathf.Min(front,left,right);
+
+        if(min<0.05f)
+        {
+            agent.AddReward(settings.wallDangerPenalty);
+        }
+        else
+        if(min<0.10f)
+        {
+            agent.AddReward(settings.wallVeryNearPenalty);
+        }
+        else
+        if(min<0.20f)
+        {
+            agent.AddReward(settings.wallNearPenalty);
+        }
+    }
+
+    //-----------------------------------------
+    // Smooth driving
+    //-----------------------------------------
+
+    public void SteeringPenalty(float actionChange)
+    {
+        agent.AddReward(
+            actionChange *
+            settings.steeringPenalty
+        );
+    }
+
+    //-----------------------------------------
+    // Terminal
+    //-----------------------------------------
+
+    public void BallLost()
+    {
+        agent.AddReward(settings.ballLostPenalty);
+    }
+
     public void Fell()
     {
         agent.AddReward(settings.fallPenalty);
     }
+
+    //-----------------------------------------
+    // Collisions
+    //-----------------------------------------
+
+    public void WallCollision()
+    {
+        agent.AddReward(settings.wallCollisionPenalty);
+    }
+
+    public void ObstacleCollision()
+    {
+        agent.AddReward(settings.obstacleCollisionPenalty);
+    }
+
     public void BoxCollision()
     {
         agent.AddReward(settings.boxCollisionPenalty);
     }
-
-    public void BoxPushed(float distanceMoved, float boxMass)
-    {
-        agent.AddReward(settings.boxPushPenalty * distanceMoved * boxMass);
-    }
-
 }

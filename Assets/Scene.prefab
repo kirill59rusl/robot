@@ -72,6 +72,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3520785146427592773}
     m_Modifications:
+    - target: {fileID: 65196901226264573, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: m_BrainParameters.VectorObservationSize
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 65196901226264573, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: m_BrainParameters.NumStackedVectorObservations
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Name
       value: robotAgent
@@ -113,8 +121,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 111112060434989001}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.ballProgressReward
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.homeProgressReward
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.distanceRewardMultiplier
       value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.obstacleCollisionPenalty
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: maxDistance
@@ -317,8 +337,16 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: minDistanceFromStart
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
       propertyPath: maxDistanceFromBallToStart
-      value: 5
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: minDistanceFromBallToObstacle
+      value: 0.4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
