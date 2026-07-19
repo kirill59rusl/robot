@@ -432,17 +432,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1099223121 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8627867860838374040, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-  m_PrefabInstance: {fileID: 4023427757054901210}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a183c9a4489c9f34bb6a99eb2a842ef8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TrackController
 --- !u!1 &1161406728
 GameObject:
   m_ObjectHideFlags: 0
@@ -545,41 +534,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: blurStrength
-      value: 0.807
-      objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: jitterFrequency
-      value: 9.04
-      objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: baseDropoutChance
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: drivetrainReference
-      value: 
-      objectReference: {fileID: 1099223121}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: falsePositiveChance
-      value: 0.004
-      objectReference: {fileID: 0}
-    - target: {fileID: 7385017747149353658, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: maneuverDropoutBoost
-      value: 0.31
-      objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene
-      objectReference: {fileID: 0}
-    - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rewardSettings.distanceRewardMultiplier
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 8991021445614112832, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_Constraints
-      value: 80
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

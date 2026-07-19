@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6555296885441915178
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 911218815257539692}
+  m_Layer: 0
+  m_Name: US
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &911218815257539692
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6555296885441915178}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7305739247042775852}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &7420502652065996916
 GameObject:
   m_ObjectHideFlags: 0
@@ -45,14 +76,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: robotAgent
       objectReference: {fileID: 0}
+    - target: {fileID: 1322264039066847826, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rosBridge
+      value: 
+      objectReference: {fileID: 7696283471753021205}
+    - target: {fileID: 1322264039066847826, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rotationSpeed
+      value: 45
+      objectReference: {fileID: 0}
     - target: {fileID: 2398567839079389820, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: near clip plane
       value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: turnK
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rosBridge
       value: 
       objectReference: {fileID: 7696283471753021205}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: turnSpeed
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: maxLinearCmd
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2934687937321737502, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_Constraints
       value: 80
@@ -68,6 +119,38 @@ PrefabInstance:
     - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: maxDistance
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: blurStrength
+      value: 0.807
+      objectReference: {fileID: 0}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: jitterFrequency
+      value: 9.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: baseDropoutChance
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: drivetrainReference
+      value: 
+      objectReference: {fileID: 8627867860838374040}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: falsePositiveChance
+      value: 0.004
+      objectReference: {fileID: 0}
+    - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: maneuverDropoutBoost
+      value: 0.31
+      objectReference: {fileID: 0}
+    - target: {fileID: 4457247928500194201, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: centerPoint
+      value: 
+      objectReference: {fileID: 911218815257539692}
+    - target: {fileID: 4457247928500194201, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: gripperRange
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 4883057006007737980, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -123,7 +206,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3539739543748822642, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 911218815257539692}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1207438151482716248, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       insertIndex: -1
@@ -154,6 +240,22 @@ MonoBehaviour:
   cmdVelTopic: /cmd_vel
   gripperTopic: /cmd_gripper
   cameraTopic: /cmd_camera_pan
+--- !u!4 &7305739247042775852 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3539739543748822642, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+  m_PrefabInstance: {fileID: 6087913965471403358}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8627867860838374040 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2576276022044907462, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+  m_PrefabInstance: {fileID: 6087913965471403358}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4953172232079785222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a183c9a4489c9f34bb6a99eb2a842ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrackController
 --- !u!1001 &8526257670425749306
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -205,6 +307,18 @@ PrefabInstance:
     - target: {fileID: 4613036868295651386, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: ballScale
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: obstacleCount
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8636186621580941555, guid: 423e2b13b4dc14746b64a78206010c1c, type: 3}
+      propertyPath: maxDistanceFromBallToStart
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
