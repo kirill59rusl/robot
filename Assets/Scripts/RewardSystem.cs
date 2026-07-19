@@ -80,6 +80,14 @@ public class RewardSystem
 
         agent.AddReward(reward);
     }
+    public void CubeCentered(float horizontalOffset)
+    {
+        float reward =
+            (1f - Mathf.Abs(horizontalOffset))
+            * settings.centeredCubeReward;
+
+        agent.AddReward(reward);
+    }
 
     //-----------------------------------------
     // Pickup

@@ -383,6 +383,57 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &524491070
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 524491072}
+  - component: {fileID: 524491071}
+  m_Layer: 0
+  m_Name: arenas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &524491071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524491070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e2e849189df48043a274382f35bd0fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArenaSpawner
+  arenaPrefab: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+  arenaCount: 50
+  arenaFootprint: {x: 6, y: 7}
+  arenaSpacing: 10
+  columnsOverride: 0
+  centerGrid: 1
+  spawnOnAwake: 1
+--- !u!4 &524491072
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524491070}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.0633, y: 0, z: 0.55552}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,25 +585,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6096533880378768035, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
+      propertyPath: m_BrainParameters.VectorObservationSize
+      value: 17
+      objectReference: {fileID: 0}
     - target: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
       propertyPath: m_Name
       value: Scene
-      objectReference: {fileID: 0}
-    - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: addSensorNoise
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rewardSettings.ballCollisionPenalty
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8773886164941136719, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: rewardSettings.obstacleCollisionPenalty
-      value: -8
-      objectReference: {fileID: 0}
-    - target: {fileID: 8991021445614112832, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-      propertyPath: m_Constraints
-      value: 84
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -568,3 +607,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1161406729}
   - {fileID: 4023427757054901210}
+  - {fileID: 524491072}

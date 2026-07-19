@@ -90,7 +90,10 @@ public class MazeGenerator : MonoBehaviour
     {
         if (groundPlanePrefab != null)
         {
-            groundPlane = Instantiate(groundPlanePrefab, Vector3.zero, Quaternion.identity, transform);
+            // ВАЖНО: используем transform.position арены, а не Vector3.zero -
+            // иначе земля всех арен окажется в одной мировой точке (0,0,0)
+            // независимо от того, куда расставил арены ArenaSpawner.
+            groundPlane = Instantiate(groundPlanePrefab, transform.position, Quaternion.identity, transform);
             groundPlane.name = "Ground";
             
             MeshRenderer renderer = groundPlane.GetComponent<MeshRenderer>();
@@ -106,7 +109,8 @@ public class MazeGenerator : MonoBehaviour
         else
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            plane.transform.position = Vector3.zero;
+            plane.transform.SetParent(transform); // без этого ClearMaze() не найдёт и не удалит её при RegenerateMaze()
+            plane.transform.position = transform.position; // мировая позиция самой арены, не (0,0,0)
             plane.transform.localScale = new Vector3(
                 groundSize.x / 10f,
                 1f,
@@ -147,9 +151,15 @@ public class MazeGenerator : MonoBehaviour
 
         Vector3 candidate = startPosition + new Vector3(dir.x, 0f, dir.y) * distance;
 
-        // Проверяем, что точка находится в пределах поля
-        if (Mathf.Abs(candidate.x) > halfWidth ||
-            Mathf.Abs(candidate.z) > halfDepth)
+        // Проверяем, что точка находится в пределах поля - ОТНОСИТЕЛЬНО ЦЕНТРА
+        // ЭТОЙ АРЕНЫ (transform.position), а не абсолютных мировых координат.
+        // Иначе при расстановке нескольких арен в сетке (не по центру мира)
+        // проверка ломается для всех арен, кроме той, что стоит в (0,0,0).
+        float localX = candidate.x - transform.position.x;
+        float localZ = candidate.z - transform.position.z;
+
+        if (Mathf.Abs(localX) > halfWidth ||
+            Mathf.Abs(localZ) > halfDepth)
             continue;
 
         startCubePosition = candidate;

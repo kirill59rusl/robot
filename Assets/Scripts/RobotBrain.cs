@@ -44,6 +44,9 @@ public class RobotBrain : Agent
     // Camera memory
     float lastKnownBallAngle = 0f;
     float timeSinceBallSeen = 0f;
+
+    float lastKnownCubeAngle = 0f;
+    float timeSinceCubeSeen = 0f;
     
     // Arena size
     const float maxArenaDistance = 6f;
@@ -150,7 +153,16 @@ public class RobotBrain : Agent
         
         goalCube = mazeGenerator.GetGoal();
 
-        
+        // Жёстко привязываем камеру к объектам ИМЕННО этой арены.
+        // Без этого SimulatedYoloCamera ищет мяч/кубик по тегу глобально
+        // по всей сцене, что ломается при нескольких аренах одновременно
+        // (робот арены №3 может "увидеть" мяч арены №17).
+        if (cameraSensor != null)
+        {
+            cameraSensor.targetBall = ball;
+            cameraSensor.targetCube = goalCube;
+        }
+
         previousHasBall = false;
 
 
@@ -173,6 +185,8 @@ public class RobotBrain : Agent
         hasBall = false;
         timeSinceBallSeen = 0f;
         lastKnownBallAngle = 0f;
+        timeSinceCubeSeen = 0f;
+        lastKnownCubeAngle = 0f;
         startPosition = spawn;
         startRotation = transform.rotation;
         holdTicks = 0;
@@ -291,6 +305,58 @@ public class RobotBrain : Agent
         }
 
         //-----------------------------------
+        // Camera: Cube (Goal)
+        //-----------------------------------
+
+        if (cameraSensor != null && cameraSensor.cubeVisible && Random.value > 0.03f)
+        {
+            sensor.AddObservation(
+                AddSignedNoise(
+                    cameraSensor.cubeHorizontalOffset,
+                    cameraAngleNoise
+                )
+            );
+
+            sensor.AddObservation(
+                AddNoise(
+                    cameraSensor.cubeNormalizedDistance,
+                    cameraDistanceNoise
+                )
+            );
+
+            lastKnownCubeAngle =
+                cameraSensor.cubeHorizontalOffset;
+
+            timeSinceCubeSeen = 0f;
+
+            sensor.AddObservation(
+                AddSignedNoise(
+                    lastKnownCubeAngle,
+                    cameraAngleNoise
+                )
+            );
+
+            sensor.AddObservation(1f);
+        }
+        else
+        {
+            sensor.AddObservation(0f);
+
+            sensor.AddObservation(1f);
+
+            sensor.AddObservation(
+                AddSignedNoise(
+                    lastKnownCubeAngle,
+                    cameraAngleNoise
+                )
+            );
+
+            sensor.AddObservation(0f);
+
+            timeSinceCubeSeen += Time.fixedDeltaTime;
+        }
+
+        //-----------------------------------
         // Camera servo
         //-----------------------------------
 
@@ -325,6 +391,14 @@ public class RobotBrain : Agent
 
         sensor.AddObservation(
             Mathf.Clamp01(timeSinceBallSeen / 10f)
+        );
+
+        //-----------------------------------
+        // Time without seeing cube
+        //-----------------------------------
+
+        sensor.AddObservation(
+            Mathf.Clamp01(timeSinceCubeSeen / 10f)
         );
     } 
 
@@ -470,6 +544,13 @@ public class RobotBrain : Agent
             );
 
         rewardSystem.GoalProgress(distance);
+
+        if (cameraSensor.cubeVisible)
+        {
+            rewardSystem.CubeCentered(
+                cameraSensor.cubeHorizontalOffset
+            );
+        }
     }
 
     //-------------------------------------------------
@@ -583,6 +664,14 @@ public class RobotBrain : Agent
             statsRecorder.Add("Sensors/TrueDistanceToBall", ball != null ? Vector3.Distance(transform.position, ball.position) : -1f);
             statsRecorder.Add("Sensors/CameraYawAngle", cameraPan != null ? cameraPan.CurrentAngle : 0f);
 
+            statsRecorder.Add("Sensors/CubeVisible", cameraSensor.cubeVisible ? 1f : 0f);
+            if (cameraSensor.cubeVisible)
+            {
+                statsRecorder.Add("Sensors/CubeAngleOffset", cameraSensor.cubeHorizontalOffset);
+                statsRecorder.Add("Sensors/CubeCameraDistance", cameraSensor.cubeNormalizedDistance);
+            }
+            statsRecorder.Add("Sensors/TrueDistanceToCube", goalCube != null ? Vector3.Distance(transform.position, goalCube.position) : -1f);
+
             // 2. ��������� � ���������� (��������� ��������� � �������������)
             statsRecorder.Add("Actuators/Gas_Raw", gas);
             statsRecorder.Add("Actuators/Steering_Raw", steering);
@@ -615,6 +704,13 @@ public class RobotBrain : Agent
                 float trueDist = Vector3.Distance(transform.position, ball.position);
                 float cameraError = Mathf.Abs(cameraSensor.normalizedDistance - Mathf.Clamp01(trueDist / maxArenaDistance));
                 statsRecorder.Add("Sensors/CameraDistanceError", cameraError);
+            }
+
+            if (cameraSensor.cubeVisible && goalCube != null)
+            {
+                float trueCubeDist = Vector3.Distance(transform.position, goalCube.position);
+                float cubeCameraError = Mathf.Abs(cameraSensor.cubeNormalizedDistance - Mathf.Clamp01(trueCubeDist / maxArenaDistance));
+                statsRecorder.Add("Sensors/CubeCameraDistanceError", cubeCameraError);
             }
         }
 
@@ -687,4 +783,4 @@ public class RobotBrain : Agent
         discrete[0] = 2;
 }
 
-}   
+}

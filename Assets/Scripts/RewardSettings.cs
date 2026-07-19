@@ -18,7 +18,8 @@ public class RewardSettings
 
     [Header("Vision")]
     public float centeredBallReward = 0.002f;
-
+    public float centeredCubeReward = 0.002f;
+    
     [Header("Walls")]
     public float wallNearPenalty = -0.001f;
     public float wallVeryNearPenalty = -0.005f;

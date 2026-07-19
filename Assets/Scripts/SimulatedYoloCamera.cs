@@ -1,26 +1,41 @@
 using UnityEngine;
 
 /// <summary>
-/// Симулирует камеру + YOLO-детектор + трекер (BoT-SORT) мяча.
-/// Публичный интерфейс (ballVisible, horizontalOffset, normalizedDistance)
-/// не менялся - RobotBrain использует его как раньше.
+/// Симулирует камеру + YOLO-детектор + трекер (BoT-SORT) для ДВУХ классов объектов:
+/// мяча (TargetBall) и кубика-цели (Goal).
 ///
-/// В этой версии добавлено:
+/// Публичный интерфейс для мяча (ballVisible, horizontalOffset, normalizedDistance,
+/// viewportPosition) не менялся - RobotBrain использует его как раньше.
+///
+/// Добавлен аналогичный интерфейс для кубика:
+///   cubeVisible, cubeHorizontalOffset, cubeNormalizedDistance, cubeViewportPosition
+///
+/// Вся логика шума/дропаута/смаза/трекер-персистентности теперь общая
+/// для обеих целей (вынесена в TrackState + DetectTarget), но состояние
+/// (память кадров, сглаженное значение и т.д.) у каждой цели своё.
+///
+/// В этой версии:
 ///   - Motion blur / смаз: при резком манёвре робота реальное значение
 ///     offset не мгновенно скачет к истинному, а "тащится" за ним
 ///     с задержкой (имитация того, что YOLO не может точно
 ///     локализовать размытый объект на смазанном кадре).
 ///   - On-screen debug overlay: текстом на экране показывает, какой
-///     именно эффект сработал ПРЯМО СЕЙЧАС - чтобы это было видно
-///     физически в Game View, а не искать в инспекторе.
+///     именно эффект сработал ПРЯМО СЕЙЧАС отдельно для мяча и кубика.
 /// </summary>
 public class SimulatedYoloCamera : MonoBehaviour
 {
     [Header("Camera")]
     public Camera robotCamera;
 
-    [Header("Target")]
+    [Header("Target: Ball")]
     public Transform targetBall;
+    [Tooltip("Тег коллайдера мяча для проверки видимости через raycast / автопоиска на сцене")]
+    public string ballTag = "TargetBall";
+
+    [Header("Target: Cube (Goal)")]
+    public Transform targetCube;
+    [Tooltip("Тег коллайдера кубика-цели для проверки видимости через raycast / автопоиска на сцене")]
+    public string cubeTag = "Goal";
 
     [Header("Visibility")]
     public float maxDistance = 2.0f;
@@ -32,7 +47,7 @@ public class SimulatedYoloCamera : MonoBehaviour
     [Header("Шум YOLO / трекера")]
     public bool noiseEnabled = true;
 
-    [Tooltip("Базовая вероятность пропуска детекции за кадр, даже когда мяч реально в кадре")]
+    [Tooltip("Базовая вероятность пропуска детекции за кадр, даже когда объект реально в кадре")]
     [Range(0f, 0.2f)] public float baseDropoutChance = 0.05f;
 
     [Tooltip("Ссылка на TrackController - при резком манёвре растёт вероятность пропуска и смаз")]
@@ -49,7 +64,7 @@ public class SimulatedYoloCamera : MonoBehaviour
 
     public float jitterFrequency = 8f;
 
-    [Tooltip("Вероятность ложного срабатывания за кадр, когда мяча реально не видно")]
+    [Tooltip("Вероятность ложного срабатывания за кадр, когда объекта реально не видно")]
     [Range(0f, 0.05f)] public float falsePositiveChance = 0.01f;
 
     [Header("Смаз (Motion Blur)")]
@@ -63,38 +78,69 @@ public class SimulatedYoloCamera : MonoBehaviour
     [Tooltip("Показывать текстовый оверлей с активными эффектами на экране")]
     public bool showDebugOverlay = true;
 
+    // ---------------------------------------------------------------
+    // Публичный вывод: МЯЧ (имена сохранены для обратной совместимости)
+    // ---------------------------------------------------------------
     [HideInInspector] public bool ballVisible;
     [HideInInspector] public float horizontalOffset;
     [HideInInspector] public float normalizedDistance;
     [HideInInspector] public Vector3 viewportPosition;
 
-    // внутреннее состояние
-    private int framesSinceLastSeen;
-    private float lastKnownOffset;
-    private float lastKnownDistance;
-    private float noiseSeedOffset;
-    private float noiseSeedDistance;
-    private float smearedOffset; // сглаженное "смазанное" значение
+    // ---------------------------------------------------------------
+    // Публичный вывод: КУБИК
+    // ---------------------------------------------------------------
+    [HideInInspector] public bool cubeVisible;
+    [HideInInspector] public float cubeHorizontalOffset;
+    [HideInInspector] public float cubeNormalizedDistance;
+    [HideInInspector] public Vector3 cubeViewportPosition;
 
-    // для debug overlay - что произошло в последнем кадре
-    private string lastEventLabel = "OK";
-    private Color lastEventColor = Color.green;
-    private float lastEventTimer;
+    /// <summary>
+    /// Внутреннее состояние трекера для одной цели (мяча ИЛИ кубика).
+    /// У каждой цели - свой независимый экземпляр.
+    /// </summary>
+    private class TrackState
+    {
+        public int framesSinceLastSeen;
+        public float lastKnownOffset;
+        public float lastKnownDistance;
+        public float smearedOffset;
+        public float noiseSeedOffset;
+        public float noiseSeedDistance;
+
+        // debug overlay - что произошло в последнем кадре у ЭТОЙ цели
+        public string eventLabel = "OK";
+        public Color eventColor = Color.green;
+        public float eventTimer;
+    }
+
+    private struct DetectionResult
+    {
+        public bool visible;
+        public float offset;
+        public float distance;
+        public bool viewportUpdated;
+        public Vector3 viewport;
+    }
+
+    private readonly TrackState ballState = new TrackState();
+    private readonly TrackState cubeState = new TrackState();
 
     void Start()
     {
         if (robotCamera == null)
             robotCamera = GetComponent<Camera>();
 
-        if (targetBall == null)
-        {
-            GameObject ball = GameObject.FindGameObjectWithTag("TargetBall");
-            if (ball != null)
-                targetBall = ball.transform;
-        }
+        ResolveTarget(ref targetBall, ballTag);
+        ResolveTarget(ref targetCube, cubeTag);
 
-        noiseSeedOffset = Random.Range(0f, 1000f);
-        noiseSeedDistance = Random.Range(0f, 1000f);
+        RandomizeSeeds(ballState);
+        RandomizeSeeds(cubeState);
+    }
+
+    private void RandomizeSeeds(TrackState state)
+    {
+        state.noiseSeedOffset = Random.Range(0f, 1000f);
+        state.noiseSeedDistance = Random.Range(0f, 1000f);
     }
 
     public void RandomizeNoiseProfile()
@@ -103,35 +149,80 @@ public class SimulatedYoloCamera : MonoBehaviour
         jitterAmplitude = Random.Range(0.01f, 0.06f);
         falsePositiveChance = Random.Range(0f, 0.008f);
 
-        noiseSeedOffset = Random.Range(0f, 1000f);
-        noiseSeedDistance = Random.Range(0f, 1000f);
+        RandomizeSeeds(ballState);
+        RandomizeSeeds(cubeState);
 
-        framesSinceLastSeen = 0;
+        ballState.framesSinceLastSeen = 0;
+        cubeState.framesSinceLastSeen = 0;
+    }
+
+    private void ResolveTarget(ref Transform target, string tag)
+    {
+        if (target != null || string.IsNullOrEmpty(tag))
+            return;
+
+        GameObject found = GameObject.FindGameObjectWithTag(tag);
+        if (found != null)
+            target = found.transform;
     }
 
     void Update()
     {
-        if (targetBall == null)
-        {
-            GameObject ball = GameObject.FindGameObjectWithTag("TargetBall");
+        // Пытаемся заново найти цели, если ссылки потерялись (объект заспавнился позже и т.п.)
+        ResolveTarget(ref targetBall, ballTag);
+        ResolveTarget(ref targetCube, cubeTag);
 
-            if (ball != null)
-            {
-                targetBall = ball.transform;
-            }
-            else
-            {
-                ApplyNotVisible(hardReset: true);
-                return;
-            }
+        if (robotCamera == null)
+        {
+            ApplyNotVisible(ballState, hardReset: true);
+            ApplyNotVisible(cubeState, hardReset: true);
+            ballVisible = false;
+            cubeVisible = false;
+            return;
         }
 
-        CheckVisibility();
+        float maneuverIntensity = GetManeuverIntensity();
+
+        // -------- Мяч --------
+        if (targetBall == null)
+        {
+            var r = ApplyNotVisible(ballState, hardReset: true);
+            ballVisible = r.visible;
+        }
+        else
+        {
+            var r = DetectTarget(targetBall, ballTag, ballState, maneuverIntensity);
+            ballVisible = r.visible;
+            horizontalOffset = r.offset;
+            normalizedDistance = r.distance;
+            if (r.viewportUpdated)
+                viewportPosition = r.viewport;
+        }
+
+        // -------- Кубик --------
+        if (targetCube == null)
+        {
+            var r = ApplyNotVisible(cubeState, hardReset: true);
+            cubeVisible = r.visible;
+        }
+        else
+        {
+            var r = DetectTarget(targetCube, cubeTag, cubeState, maneuverIntensity);
+            cubeVisible = r.visible;
+            cubeHorizontalOffset = r.offset;
+            cubeNormalizedDistance = r.distance;
+            if (r.viewportUpdated)
+                cubeViewportPosition = r.viewport;
+        }
     }
 
-    void CheckVisibility()
+    /// <summary>
+    /// Полный пайплайн детекции одной цели: raycast-видимость -> дропаут/false-positive
+    /// -> джиттер -> смаз -> tracker persistence.
+    /// </summary>
+    private DetectionResult DetectTarget(Transform target, string tag, TrackState state, float maneuverIntensity)
     {
-        Vector3 dir = targetBall.position - robotCamera.transform.position;
+        Vector3 dir = target.position - robotCamera.transform.position;
         float distance = dir.magnitude;
         float rawNormalizedDistance = Mathf.Clamp01(distance / maxDistance);
 
@@ -149,7 +240,7 @@ public class SimulatedYoloCamera : MonoBehaviour
 
         if (rawVisible)
         {
-            vp = robotCamera.WorldToViewportPoint(targetBall.position);
+            vp = robotCamera.WorldToViewportPoint(target.position);
 
             if (vp.z < 0)
                 rawVisible = false;
@@ -162,28 +253,20 @@ public class SimulatedYoloCamera : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(robotCamera.transform.position, dir.normalized, out hit, maxDistance))
             {
-                if (!hit.collider.CompareTag("TargetBall"))
+                if (!hit.collider.CompareTag(tag))
                     rawVisible = false;
             }
         }
 
         float rawOffset = rawVisible ? (vp.x - 0.5f) * 2f : 0f;
 
-        // текущая "резкость манёвра" - используется и для смаза, и для роста dropout
-        float maneuverIntensity = GetManeuverIntensity();
-
         if (noiseEnabled)
-            rawVisible = ApplyDropoutAndFalsePositives(rawVisible, maneuverIntensity);
+            rawVisible = ApplyDropoutAndFalsePositives(rawVisible, maneuverIntensity, state);
 
         if (rawVisible)
-        {
-            viewportPosition = vp;
-            ApplyVisible(rawOffset, rawNormalizedDistance, maneuverIntensity);
-        }
-        else
-        {
-            ApplyNotVisible(hardReset: false);
-        }
+            return ApplyVisible(rawOffset, rawNormalizedDistance, maneuverIntensity, state, vp);
+
+        return ApplyNotVisible(state, hardReset: false);
     }
 
     private float GetManeuverIntensity()
@@ -195,7 +278,7 @@ public class SimulatedYoloCamera : MonoBehaviour
                Mathf.Clamp01(Mathf.Abs(drivetrainReference.gas));
     }
 
-    private bool ApplyDropoutAndFalsePositives(bool rawVisible, float maneuverIntensity)
+    private bool ApplyDropoutAndFalsePositives(bool rawVisible, float maneuverIntensity, TrackState state)
     {
         if (rawVisible)
         {
@@ -203,7 +286,7 @@ public class SimulatedYoloCamera : MonoBehaviour
 
             if (Random.value < dropoutChance)
             {
-                SetDebugEvent("DROPOUT (моргнула)", new Color(1f, 0.5f, 0f));
+                SetDebugEvent(state, "DROPOUT (моргнула)", new Color(1f, 0.5f, 0f));
                 return false;
             }
 
@@ -213,7 +296,7 @@ public class SimulatedYoloCamera : MonoBehaviour
         {
             if (Random.value < falsePositiveChance)
             {
-                SetDebugEvent("FALSE POSITIVE", Color.magenta);
+                SetDebugEvent(state, "FALSE POSITIVE", Color.magenta);
                 return true;
             }
 
@@ -221,9 +304,9 @@ public class SimulatedYoloCamera : MonoBehaviour
         }
     }
 
-    private void ApplyVisible(float rawOffset, float rawDistance, float maneuverIntensity)
+    private DetectionResult ApplyVisible(float rawOffset, float rawDistance, float maneuverIntensity, TrackState state, Vector3 vp)
     {
-        framesSinceLastSeen = 0;
+        state.framesSinceLastSeen = 0;
 
         float jitterOffset = 0f;
         float jitterDistance = 0f;
@@ -231,11 +314,11 @@ public class SimulatedYoloCamera : MonoBehaviour
         if (noiseEnabled)
         {
             jitterOffset =
-                (Mathf.PerlinNoise(noiseSeedOffset, Time.time * jitterFrequency) - 0.5f)
+                (Mathf.PerlinNoise(state.noiseSeedOffset, Time.time * jitterFrequency) - 0.5f)
                 * 2f * jitterAmplitude;
 
             jitterDistance =
-                (Mathf.PerlinNoise(noiseSeedDistance, Time.time * jitterFrequency) - 0.5f)
+                (Mathf.PerlinNoise(state.noiseSeedDistance, Time.time * jitterFrequency) - 0.5f)
                 * 2f * jitterAmplitude;
         }
 
@@ -248,57 +331,67 @@ public class SimulatedYoloCamera : MonoBehaviour
         if (noiseEnabled && blurStrength > 0f)
         {
             float lerpSpeed = Mathf.Lerp(blurRecoverySpeed, blurRecoverySpeed * 0.1f, maneuverIntensity * blurStrength);
-            smearedOffset = Mathf.Lerp(smearedOffset, targetOffset, 1f - Mathf.Exp(-lerpSpeed * Time.deltaTime));
+            state.smearedOffset = Mathf.Lerp(state.smearedOffset, targetOffset, 1f - Mathf.Exp(-lerpSpeed * Time.deltaTime));
 
             if (maneuverIntensity * blurStrength > 0.15f &&
-                Mathf.Abs(smearedOffset - targetOffset) > 0.05f)
+                Mathf.Abs(state.smearedOffset - targetOffset) > 0.05f)
             {
-                SetDebugEvent("MOTION BLUR (смаз)", Color.cyan);
+                SetDebugEvent(state, "MOTION BLUR (смаз)", Color.cyan);
             }
         }
         else
         {
-            smearedOffset = targetOffset;
+            state.smearedOffset = targetOffset;
         }
 
-        horizontalOffset = smearedOffset;
-        normalizedDistance = Mathf.Clamp01(rawDistance + jitterDistance);
-        ballVisible = true;
+        float finalDistance = Mathf.Clamp01(rawDistance + jitterDistance);
 
-        lastKnownOffset = horizontalOffset;
-        lastKnownDistance = normalizedDistance;
+        state.lastKnownOffset = state.smearedOffset;
+        state.lastKnownDistance = finalDistance;
+
+        return new DetectionResult
+        {
+            visible = true,
+            offset = state.smearedOffset,
+            distance = finalDistance,
+            viewportUpdated = true,
+            viewport = vp
+        };
     }
 
-    private void ApplyNotVisible(bool hardReset)
+    private DetectionResult ApplyNotVisible(TrackState state, bool hardReset)
     {
         if (hardReset)
         {
-            ballVisible = false;
-            framesSinceLastSeen = 0;
-            return;
+            state.framesSinceLastSeen = 0;
+            return new DetectionResult { visible = false, offset = 0f, distance = 0f, viewportUpdated = false };
         }
 
-        framesSinceLastSeen++;
+        state.framesSinceLastSeen++;
 
-        if (noiseEnabled && framesSinceLastSeen <= trackerPersistenceFrames)
+        if (noiseEnabled && state.framesSinceLastSeen <= trackerPersistenceFrames)
         {
-            ballVisible = true;
-            horizontalOffset = lastKnownOffset;
-            normalizedDistance = lastKnownDistance;
-            SetDebugEvent($"TRACKER HOLD ({framesSinceLastSeen}/{trackerPersistenceFrames})", Color.yellow);
+            SetDebugEvent(state, $"TRACKER HOLD ({state.framesSinceLastSeen}/{trackerPersistenceFrames})", Color.yellow);
+
+            return new DetectionResult
+            {
+                visible = true,
+                offset = state.lastKnownOffset,
+                distance = state.lastKnownDistance,
+                viewportUpdated = false
+            };
         }
-        else
-        {
-            ballVisible = false;
-            SetDebugEvent("LOST", Color.red);
-        }
+
+        SetDebugEvent(state, "LOST", Color.red);
+
+        return new DetectionResult { visible = false, offset = 0f, distance = 0f, viewportUpdated = false };
     }
 
-    private void SetDebugEvent(string label, Color color)
+    private void SetDebugEvent(TrackState state, string label, Color color)
     {
-        lastEventLabel = label;
-        lastEventColor = color;
-        lastEventTimer = 1.5f; // держим надпись на экране 1.5 сек, чтобы точно успеть увидеть
+        state.eventLabel = label;
+        state.eventColor = color;
+        state.eventTimer = 1.5f; // держим надпись на экране 1.5 сек, чтобы точно успеть увидеть
     }
 
     void OnGUI()
@@ -306,33 +399,54 @@ public class SimulatedYoloCamera : MonoBehaviour
         if (!showDebugOverlay)
             return;
 
-        if (lastEventTimer > 0f)
-            lastEventTimer -= Time.deltaTime;
-
-        var style = new GUIStyle(GUI.skin.box)
+        var boxStyle = new GUIStyle(GUI.skin.box)
         {
-            fontSize = 18,
+            fontSize = 16,
             alignment = TextAnchor.MiddleLeft,
             padding = new RectOffset(10, 10, 6, 6)
         };
 
-        GUI.color = Color.white;
-        GUI.Box(new Rect(10, 10, 340, 90), "", style);
+        float maneuverIntensity = GetManeuverIntensity();
 
+        GUI.color = Color.white;
+        GUI.Box(new Rect(10, 10, 360, 150), "", boxStyle);
+
+        // ---- Мяч ----
         GUI.color = ballVisible ? Color.green : Color.red;
-        GUI.Label(new Rect(20, 15, 320, 24),
-            $"ballVisible: {ballVisible}   offset: {horizontalOffset:F2}   dist: {normalizedDistance:F2}", style);
+        GUI.Label(new Rect(20, 14, 340, 22),
+            $"BALL  visible: {ballVisible}   offset: {horizontalOffset:F2}   dist: {normalizedDistance:F2}", boxStyle);
+
+        DrawEventLabel(ballState, new Rect(20, 38, 340, 22));
+
+        // ---- Кубик ----
+        GUI.color = cubeVisible ? Color.green : Color.red;
+        GUI.Label(new Rect(20, 66, 340, 22),
+            $"CUBE  visible: {cubeVisible}   offset: {cubeHorizontalOffset:F2}   dist: {cubeNormalizedDistance:F2}", boxStyle);
+
+        DrawEventLabel(cubeState, new Rect(20, 90, 340, 22));
+
+        // ---- Общее ----
+        GUI.color = Color.white;
+        GUI.Label(new Rect(20, 122, 340, 22), $"maneuver intensity: {maneuverIntensity:F2}", boxStyle);
+
+        GUI.color = Color.white;
+    }
+
+    private void DrawEventLabel(TrackState state, Rect rect)
+    {
+        if (state.eventTimer > 0f)
+            state.eventTimer -= Time.deltaTime;
+
+        var style = new GUIStyle(GUI.skin.box)
+        {
+            fontSize = 16,
+            alignment = TextAnchor.MiddleLeft,
+            padding = new RectOffset(10, 10, 6, 6)
+        };
 
         // событие подсвечивается ярко только 1.5 сек после срабатывания,
         // потом гаснет до серого - чтобы было видно именно МОМЕНТ срабатывания
-        Color fade = lastEventTimer > 0f ? lastEventColor : Color.gray;
-        GUI.color = fade;
-        GUI.Label(new Rect(20, 45, 320, 24), $"last event: {lastEventLabel}", style);
-
-        float maneuverIntensity = GetManeuverIntensity();
-        GUI.color = Color.white;
-        GUI.Label(new Rect(20, 70, 320, 24), $"maneuver intensity: {maneuverIntensity:F2}", style);
-
-        GUI.color = Color.white;
+        GUI.color = state.eventTimer > 0f ? state.eventColor : Color.gray;
+        GUI.Label(rect, $"  last event: {state.eventLabel}", style);
     }
 }
