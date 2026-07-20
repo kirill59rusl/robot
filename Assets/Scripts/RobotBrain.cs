@@ -10,7 +10,8 @@ public class RobotBrain : Agent
     public TrackController trackController;
     public VirtualSensors sensors;
     public GripperController gripper;
-    public IVision cameraSensor;
+    [SerializeField] private MonoBehaviour visionSource; // сюда перетаскиваешь SimulatedYoloCamera или RealVision
+    public IVision cameraSensor { get; private set; }
     public CameraPanController cameraPan;
     [Header("Environment")]
     public MazeGenerator mazeGenerator;
@@ -73,14 +74,22 @@ public class RobotBrain : Agent
             }
         }
 
-        if (cameraSensor == null)
+        // --- Vision (IVision: SimulatedYoloCamera или RealVision) ---
+        if (visionSource == null)
         {
-            cameraSensor = GetComponentInChildren<SimulatedYoloCamera>();
-            if (cameraSensor == null)
-            {
-                Debug.LogWarning("SimulatedYoloCamera not found!");
-            }
+            // автопоиск запасного варианта, если в инспекторе не назначено
+            visionSource = GetComponentInChildren<SimulatedYoloCamera>() as MonoBehaviour;
+
+            if (visionSource == null)
+                visionSource = GetComponentInChildren<RealVision>() as MonoBehaviour;
         }
+
+        cameraSensor = visionSource as IVision;
+
+        if (cameraSensor == null)
+            Debug.LogError("Vision source not assigned or does not implement IVision! " +
+                            "Перетащи SimulatedYoloCamera или RealVision в поле Vision Source в инспекторе.");
+
         rewardSystem = new RewardSystem(this, rewardSettings);
         startPosition = transform.position;
         startRotation = transform.rotation;

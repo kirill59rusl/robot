@@ -247,6 +247,17 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1
+  noiseEnabled: 1
+  baseDropoutChance: 0.05
+  drivetrainReference: {fileID: 0}
+  maneuverDropoutBoost: 0.3
+  trackerPersistenceFrames: 3
+  jitterAmplitude: 0.03
+  jitterFrequency: 8
+  falsePositiveChance: 0.01
+  blurStrength: 0.6
+  blurRecoverySpeed: 6
+  showDebugOverlay: 1
   ballVisible: 0
   horizontalOffset: 0
   normalizedDistance: 0
@@ -525,14 +536,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a183c9a4489c9f34bb6a99eb2a842ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrackController
-  moveSpeed: 0.57
+  moveSpeed: 0.9
   turnSpeed: 120
-  turnK: 0.3
-  maxLinearCmd: 0.25
-  speedToPwm: 200
+  turnK: 0.6
+  maxLinearCmd: 0.7
+  speedToPwm: 100
   motorDeadzone: 30
   minMotorPwm: 50
   maxPwmStep: 15
+  driftFactor: 0.35
+  lateralFriction: 4
+  driftYawThreshold: 40
+  randomYawNoiseStrength: 3
+  randomNoiseFrequency: 0.5
+  longitudinalFriction: 2.5
+  rollingFriction: 0.05
   gas: 0
   steer: 0
   useRealRobot: 0
@@ -616,6 +634,8 @@ MonoBehaviour:
     goalApproachReward: 0.002
     goalReward: 10
     fallPenalty: -2
+    boxCollisionPenalty: -0.05
+    boxPushPenalty: -0.02
 --- !u!1 &1917713898052067012
 GameObject:
   m_ObjectHideFlags: 0
@@ -2444,3 +2464,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraPanController
   maxAngle: 90
   rotationSpeed: 120
+  rosBridge: {fileID: 0}
