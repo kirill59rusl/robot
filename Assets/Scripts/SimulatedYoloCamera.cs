@@ -2,19 +2,20 @@ using UnityEngine;
 
 /// <summary>
 /// Симулирует камеру + YOLO-детектор + трекер (BoT-SORT) мяча.
-/// Публичный интерфейс (ballVisible, horizontalOffset, normalizedDistance)
-/// не менялся - RobotBrain использует его как раньше.
+/// Публичный интерфейс приведён к RealVision (seesBall / normalizedAngle / normalizedDistance),
+/// чтобы вызывающий код (например RobotBrain) мог работать с любым источником
+/// зрения через общий интерфейс IVision, без изменений на своей стороне.
 ///
 /// В этой версии добавлено:
 ///   - Motion blur / смаз: при резком манёвре робота реальное значение
-///     offset не мгновенно скачет к истинному, а "тащится" за ним
+///     angle не мгновенно скачет к истинному, а "тащится" за ним
 ///     с задержкой (имитация того, что YOLO не может точно
 ///     локализовать размытый объект на смазанном кадре).
 ///   - On-screen debug overlay: текстом на экране показывает, какой
 ///     именно эффект сработал ПРЯМО СЕЙЧАС - чтобы это было видно
 ///     физически в Game View, а не искать в инспекторе.
 /// </summary>
-public class SimulatedYoloCamera : MonoBehaviour
+public class SimulatedYoloCamera : MonoBehaviour, IVision
 {
     [Header("Camera")]
     public Camera robotCamera;
@@ -44,7 +45,7 @@ public class SimulatedYoloCamera : MonoBehaviour
     [Tooltip("Сколько кадров подряд 'трекер' держит последнее известное положение")]
     public int trackerPersistenceFrames = 3;
 
-    [Tooltip("Амплитуда дрожания offset/distance")]
+    [Tooltip("Амплитуда дрожания angle/distance")]
     public float jitterAmplitude = 0.03f;
 
     public float jitterFrequency = 8f;
@@ -53,7 +54,7 @@ public class SimulatedYoloCamera : MonoBehaviour
     [Range(0f, 0.05f)] public float falsePositiveChance = 0.01f;
 
     [Header("Смаз (Motion Blur)")]
-    [Tooltip("Насколько сильно резкий манёвр 'размазывает' offset (0 = нет смаза)")]
+    [Tooltip("Насколько сильно резкий манёвр 'размазывает' angle (0 = нет смаза)")]
     [Range(0f, 1f)] public float blurStrength = 0.6f;
 
     [Tooltip("Скорость, с которой размазанное значение 'догоняет' истинное, когда манёвр прекращается")]
@@ -63,18 +64,23 @@ public class SimulatedYoloCamera : MonoBehaviour
     [Tooltip("Показывать текстовый оверлей с активными эффектами на экране")]
     public bool showDebugOverlay = true;
 
-    [HideInInspector] public bool ballVisible;
-    [HideInInspector] public float horizontalOffset;
+    // ---- Публичный интерфейс, совместимый с RealVision / IVision ----
+    [HideInInspector] public bool seesBall;
+    [HideInInspector] public float normalizedAngle;
     [HideInInspector] public float normalizedDistance;
     [HideInInspector] public Vector3 viewportPosition;
 
+    bool IVision.seesBall => seesBall;
+    float IVision.normalizedAngle => normalizedAngle;
+    float IVision.normalizedDistance => normalizedDistance;
+
     // внутреннее состояние
     private int framesSinceLastSeen;
-    private float lastKnownOffset;
+    private float lastKnownAngle;
     private float lastKnownDistance;
-    private float noiseSeedOffset;
+    private float noiseSeedAngle;
     private float noiseSeedDistance;
-    private float smearedOffset; // сглаженное "смазанное" значение
+    private float smearedAngle; // сглаженное "смазанное" значение
 
     // для debug overlay - что произошло в последнем кадре
     private string lastEventLabel = "OK";
@@ -93,7 +99,7 @@ public class SimulatedYoloCamera : MonoBehaviour
                 targetBall = ball.transform;
         }
 
-        noiseSeedOffset = Random.Range(0f, 1000f);
+        noiseSeedAngle = Random.Range(0f, 1000f);
         noiseSeedDistance = Random.Range(0f, 1000f);
     }
 
@@ -103,7 +109,7 @@ public class SimulatedYoloCamera : MonoBehaviour
         jitterAmplitude = Random.Range(0.01f, 0.06f);
         falsePositiveChance = Random.Range(0f, 0.008f);
 
-        noiseSeedOffset = Random.Range(0f, 1000f);
+        noiseSeedAngle = Random.Range(0f, 1000f);
         noiseSeedDistance = Random.Range(0f, 1000f);
 
         framesSinceLastSeen = 0;
@@ -167,7 +173,7 @@ public class SimulatedYoloCamera : MonoBehaviour
             }
         }
 
-        float rawOffset = rawVisible ? (vp.x - 0.5f) * 2f : 0f;
+        float rawAngle = rawVisible ? (vp.x - 0.5f) * 2f : 0f;
 
         // текущая "резкость манёвра" - используется и для смаза, и для роста dropout
         float maneuverIntensity = GetManeuverIntensity();
@@ -178,7 +184,7 @@ public class SimulatedYoloCamera : MonoBehaviour
         if (rawVisible)
         {
             viewportPosition = vp;
-            ApplyVisible(rawOffset, rawNormalizedDistance, maneuverIntensity);
+            ApplyVisible(rawAngle, rawNormalizedDistance, maneuverIntensity);
         }
         else
         {
@@ -221,17 +227,17 @@ public class SimulatedYoloCamera : MonoBehaviour
         }
     }
 
-    private void ApplyVisible(float rawOffset, float rawDistance, float maneuverIntensity)
+    private void ApplyVisible(float rawAngle, float rawDistance, float maneuverIntensity)
     {
         framesSinceLastSeen = 0;
 
-        float jitterOffset = 0f;
+        float jitterAngle = 0f;
         float jitterDistance = 0f;
 
         if (noiseEnabled)
         {
-            jitterOffset =
-                (Mathf.PerlinNoise(noiseSeedOffset, Time.time * jitterFrequency) - 0.5f)
+            jitterAngle =
+                (Mathf.PerlinNoise(noiseSeedAngle, Time.time * jitterFrequency) - 0.5f)
                 * 2f * jitterAmplitude;
 
             jitterDistance =
@@ -239,7 +245,7 @@ public class SimulatedYoloCamera : MonoBehaviour
                 * 2f * jitterAmplitude;
         }
 
-        float targetOffset = Mathf.Clamp(rawOffset + jitterOffset, -1f, 1f);
+        float targetAngle = Mathf.Clamp(rawAngle + jitterAngle, -1f, 1f);
 
         // --- Смаз (motion blur) ---
         // Чем резче манёвр, тем медленнее "смазанное" значение
@@ -248,24 +254,24 @@ public class SimulatedYoloCamera : MonoBehaviour
         if (noiseEnabled && blurStrength > 0f)
         {
             float lerpSpeed = Mathf.Lerp(blurRecoverySpeed, blurRecoverySpeed * 0.1f, maneuverIntensity * blurStrength);
-            smearedOffset = Mathf.Lerp(smearedOffset, targetOffset, 1f - Mathf.Exp(-lerpSpeed * Time.deltaTime));
+            smearedAngle = Mathf.Lerp(smearedAngle, targetAngle, 1f - Mathf.Exp(-lerpSpeed * Time.deltaTime));
 
             if (maneuverIntensity * blurStrength > 0.15f &&
-                Mathf.Abs(smearedOffset - targetOffset) > 0.05f)
+                Mathf.Abs(smearedAngle - targetAngle) > 0.05f)
             {
                 SetDebugEvent("MOTION BLUR (смаз)", Color.cyan);
             }
         }
         else
         {
-            smearedOffset = targetOffset;
+            smearedAngle = targetAngle;
         }
 
-        horizontalOffset = smearedOffset;
+        normalizedAngle = smearedAngle;
         normalizedDistance = Mathf.Clamp01(rawDistance + jitterDistance);
-        ballVisible = true;
+        seesBall = true;
 
-        lastKnownOffset = horizontalOffset;
+        lastKnownAngle = normalizedAngle;
         lastKnownDistance = normalizedDistance;
     }
 
@@ -273,7 +279,7 @@ public class SimulatedYoloCamera : MonoBehaviour
     {
         if (hardReset)
         {
-            ballVisible = false;
+            seesBall = false;
             framesSinceLastSeen = 0;
             return;
         }
@@ -282,14 +288,14 @@ public class SimulatedYoloCamera : MonoBehaviour
 
         if (noiseEnabled && framesSinceLastSeen <= trackerPersistenceFrames)
         {
-            ballVisible = true;
-            horizontalOffset = lastKnownOffset;
+            seesBall = true;
+            normalizedAngle = lastKnownAngle;
             normalizedDistance = lastKnownDistance;
             SetDebugEvent($"TRACKER HOLD ({framesSinceLastSeen}/{trackerPersistenceFrames})", Color.yellow);
         }
         else
         {
-            ballVisible = false;
+            seesBall = false;
             SetDebugEvent("LOST", Color.red);
         }
     }
@@ -319,9 +325,9 @@ public class SimulatedYoloCamera : MonoBehaviour
         GUI.color = Color.white;
         GUI.Box(new Rect(10, 10, 340, 90), "", style);
 
-        GUI.color = ballVisible ? Color.green : Color.red;
+        GUI.color = seesBall ? Color.green : Color.red;
         GUI.Label(new Rect(20, 15, 320, 24),
-            $"ballVisible: {ballVisible}   offset: {horizontalOffset:F2}   dist: {normalizedDistance:F2}", style);
+            $"seesBall: {seesBall}   angle: {normalizedAngle:F2}   dist: {normalizedDistance:F2}", style);
 
         // событие подсвечивается ярко только 1.5 сек после срабатывания,
         // потом гаснет до серого - чтобы было видно именно МОМЕНТ срабатывания

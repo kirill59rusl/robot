@@ -10,7 +10,7 @@ public class RobotBrain : Agent
     public TrackController trackController;
     public VirtualSensors sensors;
     public GripperController gripper;
-    public SimulatedYoloCamera cameraSensor;
+    public IVision cameraSensor;
     public CameraPanController cameraPan;
     [Header("Environment")]
     public MazeGenerator mazeGenerator;
@@ -191,14 +191,14 @@ public class RobotBrain : Agent
         // Camera
         //-----------------------------------
 
-        if (cameraSensor != null && cameraSensor.ballVisible)
+        if (cameraSensor != null && cameraSensor.seesBall)
         {
-            sensor.AddObservation(cameraSensor.horizontalOffset);
+            sensor.AddObservation(cameraSensor.normalizedAngle);
 
             sensor.AddObservation(cameraSensor.normalizedDistance);
 
             lastKnownBallAngle =
-                cameraSensor.horizontalOffset;
+                cameraSensor.normalizedAngle;
 
             timeSinceBallSeen = 0f;
 
@@ -355,9 +355,9 @@ public class RobotBrain : Agent
         float currentDistance = Vector3.Distance(transform.position, ball.position);
         rewardSystem.DistanceReward(previousDistanceToBall, currentDistance);
         previousDistanceToBall = currentDistance;
-        if (cameraSensor.ballVisible)
+        if (cameraSensor.seesBall)
         {
-            rewardSystem.BallVisible(cameraSensor.horizontalOffset, currentDistance);
+            rewardSystem.BallVisible(cameraSensor.normalizedAngle, currentDistance);
         }
     }
 
@@ -421,10 +421,10 @@ public class RobotBrain : Agent
             statsRecorder.Add("Sensors/GripperIR", sensors.gripperIR);
 
             // ������ (��������� ����)
-            statsRecorder.Add("Sensors/BallVisible", cameraSensor.ballVisible ? 1f : 0f);
-            if (cameraSensor.ballVisible)
+            statsRecorder.Add("Sensors/BallVisible", cameraSensor.seesBall ? 1f : 0f);
+            if (cameraSensor.seesBall)
             {
-                statsRecorder.Add("Sensors/BallAngleOffset", cameraSensor.horizontalOffset);
+                statsRecorder.Add("Sensors/BallAngleOffset", cameraSensor.normalizedAngle);
                 statsRecorder.Add("Sensors/BallCameraDistance", cameraSensor.normalizedDistance);
             }
             statsRecorder.Add("Sensors/TrueDistanceToBall", ball != null ? Vector3.Distance(transform.position, ball.position) : -1f);
@@ -457,7 +457,7 @@ public class RobotBrain : Agent
                 statsRecorder.Add("Rewards/ReturnDistanceToStart", Vector3.Distance(transform.position, startPosition));
             }
 
-            if (cameraSensor.ballVisible && ball != null)
+            if (cameraSensor.seesBall && ball != null)
             {
                 float trueDist = Vector3.Distance(transform.position, ball.position);
                 float cameraError = Mathf.Abs(cameraSensor.normalizedDistance - Mathf.Clamp01(trueDist / maxArenaDistance));
