@@ -22,7 +22,7 @@ public class GripperController : MonoBehaviour
 
     [Header("Задержка захвата (sim2real)")]
     [Tooltip("Сколько секунд реально 'закрывается' гриппер, прежде чем мяч считается схваченным")]
-    public float grabDuration = 3f;
+    public float grabDuration = 1f;
 
     [Tooltip("Если во время закрытия мяч отдалился от сенсора дальше, чем grabDistance * этот множитель - захват срывается")]
     public float grabAbortMultiplier = 1.5f;

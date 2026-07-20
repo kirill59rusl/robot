@@ -413,7 +413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaSpawner
   arenaPrefab: {fileID: 7420502652065996916, guid: e5eae7229896d9042961a6f9cbe8083a, type: 3}
-  arenaCount: 1
+  arenaCount: 40
   arenaFootprint: {x: 6, y: 7}
   arenaSpacing: 10
   columnsOverride: 0

@@ -13,7 +13,7 @@ public class MazeGenerator : MonoBehaviour
     [Header("Параметры генерации")]
     [SerializeField] private bool randomizeObstacleCount = true;
 
-    [SerializeField] private int minObstacleCount = 15;
+    [SerializeField] private int minObstacleCount = 0;
     [SerializeField] private int maxObstacleCount = 40;
 
     [SerializeField] private int obstacleCount = 30; // используется, если randomization выключен

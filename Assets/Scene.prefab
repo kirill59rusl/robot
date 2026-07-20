@@ -134,27 +134,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.ballLostPenalty
-      value: -8
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.ballProgressReward
-      value: 0.6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.centeredBallReward
-      value: 0.0004
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.centeredCubeReward
-      value: 0.0004
+      value: 0.0009
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.homeProgressReward
-      value: 2.4
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.ballCollisionPenalty
-      value: -1
+      value: -0.05
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.distanceRewardMultiplier
@@ -162,7 +162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.obstacleCollisionPenalty
-      value: -8
+      value: -0.3
       objectReference: {fileID: 0}
     - target: {fileID: 3602958851195469796, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: maxDistance
@@ -251,6 +251,14 @@ PrefabInstance:
     - target: {fileID: 7241488674044490131, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7350710668530015963, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: gripperIR
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7350710668530015963, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: grabDuration
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
