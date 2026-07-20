@@ -4,21 +4,21 @@ using UnityEngine;
 public class RewardSettings
 {
     [Header("Episode")]
-    public float stepPenalty = -0.001f;
+    public float stepPenalty = -0.0007f;
     public float fallPenalty = -2.0f;
-    public float ballLostPenalty = -1.0f;
+    public float ballLostPenalty = -8.0f;
 
     [Header("Main goals")]
-    public float pickupReward = 1.0f;
-    public float goalReward = 10.0f;
+    public float pickupReward = 8.0f;
+    public float goalReward = 24.0f;
 
     [Header("Progress")]
-    public float ballProgressReward = 0.02f;
-    public float homeProgressReward = 0.03f;
+    public float ballProgressReward = 0.6f;
+    public float homeProgressReward = 2.4f;
 
     [Header("Vision")]
-    public float centeredBallReward = 0.002f;
-    public float centeredCubeReward = 0.002f;
+    public float centeredBallReward = 0.0003f;
+    public float centeredCubeReward = 0.0003f;
     
     [Header("Walls")]
     public float wallNearPenalty = -0.001f;

@@ -125,8 +125,24 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.goalReward
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.pickupReward
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.ballProgressReward
       value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.centeredBallReward
+      value: 0.0004
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
+      propertyPath: rewardSettings.centeredCubeReward
+      value: 0.0004
       objectReference: {fileID: 0}
     - target: {fileID: 3296502454171463185, guid: 373b2a9e96a245f4eb28488fc8676d1d, type: 3}
       propertyPath: rewardSettings.homeProgressReward

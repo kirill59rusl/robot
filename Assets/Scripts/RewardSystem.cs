@@ -58,6 +58,9 @@ public class RewardSystem
 
     public void GoalProgress(float currentDistance)
     {
+        if (!initialized)
+            return;
+
         if (currentDistance < bestGoalDistance)
         {
             float delta = bestGoalDistance - currentDistance;

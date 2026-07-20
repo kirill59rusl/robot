@@ -2,22 +2,22 @@
     "GFSX_Brain": {
         "checkpoints": [
             {
-                "steps": 147000,
-                "file_path": "results\\test_run\\GFSX_Brain\\GFSX_Brain-147000.onnx",
+                "steps": 0,
+                "file_path": "results\\test_run\\GFSX_Brain\\GFSX_Brain-0.onnx",
                 "reward": null,
-                "creation_time": 1784233742.5417747,
+                "creation_time": 1784499960.8921714,
                 "auxillary_file_paths": [
-                    "results\\test_run\\GFSX_Brain\\GFSX_Brain-147000.pt"
+                    "results\\test_run\\GFSX_Brain\\GFSX_Brain-0.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 147000,
+            "steps": 0,
             "file_path": "results\\test_run\\GFSX_Brain.onnx",
             "reward": null,
-            "creation_time": 1784233742.5417747,
+            "creation_time": 1784499960.8921714,
             "auxillary_file_paths": [
-                "results\\test_run\\GFSX_Brain\\GFSX_Brain-147000.pt"
+                "results\\test_run\\GFSX_Brain\\GFSX_Brain-0.pt"
             ]
         }
     },

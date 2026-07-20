@@ -53,16 +53,13 @@ public class GripperController : MonoBehaviour
 
 
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current != null)
         {
-            Grab();
-        }
+            if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                Grab();
 
-
-
-        if (Keyboard.current.leftShiftKey.wasPressedThisFrame)
-        {
-            Release();
+            if (Keyboard.current.leftShiftKey.wasPressedThisFrame)
+                Release();
         }
 
     }
