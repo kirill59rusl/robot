@@ -23,6 +23,9 @@ public class GripperController : MonoBehaviour
 
     [Header("Use Real Robot")]
     public bool useRealRobot = false;
+    [Header("Управление")]
+    [Tooltip("Включай только для ручного теста WASD. В инференсе/обучении — выключено.")]
+    public bool manualControl = false;
 
     private GameObject heldBall;
 
@@ -42,6 +45,9 @@ public class GripperController : MonoBehaviour
         }
         UpdateGripperIR();
 
+
+        if (!manualControl || Keyboard.current == null)
+            return;
 
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
