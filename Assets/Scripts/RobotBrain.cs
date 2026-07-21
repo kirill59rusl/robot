@@ -15,7 +15,8 @@ public class RobotBrain : Agent
     public CameraPanController cameraPan;
     [Header("Environment")]
     public MazeGenerator mazeGenerator;
-
+    [Header("Is real robot?")]
+    public bool useRealRobot;
     [Header("Rewards")]
     [SerializeField]
     private RewardSettings rewardSettings = new();
@@ -82,6 +83,17 @@ public class RobotBrain : Agent
 
             if (visionSource == null)
                 visionSource = GetComponentInChildren<RealVision>() as MonoBehaviour;
+        }
+        if (!useRealRobot)
+        visionSource = GetComponentInChildren<SimulatedYoloCamera>() as MonoBehaviour;
+
+        if (visionSource == null)
+        {
+            visionSource = GetComponentInChildren<RealVision>() as MonoBehaviour;
+            if (!useRealRobot)
+                Debug.LogError("Не нашёл SimulatedYoloCamera :(.");
+            else
+                Debug.LogWarning("Сейчас идёт реальный робот.");
         }
 
         cameraSensor = visionSource as IVision;

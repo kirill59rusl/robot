@@ -101,8 +101,8 @@ GameObject:
   - component: {fileID: 7241488674044490131}
   - component: {fileID: 2398567839079389820}
   - component: {fileID: 4724713510619205487}
-  - component: {fileID: 3113394068843074376}
   - component: {fileID: 3602958851195469796}
+  - component: {fileID: 3113394068843074376}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -184,6 +184,40 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 539130390073907312}
   m_Enabled: 0
+--- !u!114 &3602958851195469796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 539130390073907312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b8d2a353bf33641ae84cd101c6fdb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SimulatedYoloCamera
+  robotCamera: {fileID: 0}
+  targetBall: {fileID: 0}
+  maxDistance: 2
+  horizontalFOV: 40
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
+  noiseEnabled: 1
+  baseDropoutChance: 0.05
+  drivetrainReference: {fileID: 0}
+  maneuverDropoutBoost: 0.3
+  trackerPersistenceFrames: 3
+  jitterAmplitude: 0.03
+  jitterFrequency: 8
+  falsePositiveChance: 0.01
+  blurStrength: 0.6
+  blurRecoverySpeed: 6
+  showDebugOverlay: 1
+  seesBall: 0
+  normalizedAngle: 0
+  normalizedDistance: 0
+  viewportPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &3113394068843074376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,7 +225,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 539130390073907312}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
@@ -228,40 +262,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &3602958851195469796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 539130390073907312}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53b8d2a353bf33641ae84cd101c6fdb4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimulatedYoloCamera
-  robotCamera: {fileID: 0}
-  targetBall: {fileID: 0}
-  maxDistance: 2
-  horizontalFOV: 40
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 1
-  noiseEnabled: 1
-  baseDropoutChance: 0.05
-  drivetrainReference: {fileID: 0}
-  maneuverDropoutBoost: 0.3
-  trackerPersistenceFrames: 3
-  jitterAmplitude: 0.03
-  jitterFrequency: 8
-  falsePositiveChance: 0.01
-  blurStrength: 0.6
-  blurRecoverySpeed: 6
-  showDebugOverlay: 1
-  ballVisible: 0
-  horizontalOffset: 0
-  normalizedDistance: 0
-  viewportPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &980265386205999793
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,6 +492,7 @@ MonoBehaviour:
   leftIRPoint: {fileID: 8972873790355726669}
   rightIRPoint: {fileID: 9056977080569766406}
   gripperIRPoint: {fileID: 4371473927426734981}
+  useRealRobot: 0
   ultrasonicRange: 2
   ultrasonicRays: 7
   ultrasonicAngle: 30
@@ -524,6 +525,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   gripperIR: 0
+  useRealRobot: 0
+  manualControl: 0
 --- !u!114 &2576276022044907462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -553,6 +556,7 @@ MonoBehaviour:
   rollingFriction: 0.05
   gas: 0
   steer: 0
+  manualControl: 0
   useRealRobot: 0
   rosBridge: {fileID: 0}
 --- !u!114 &65196901226264573
@@ -577,9 +581,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: d0bce9d15f623a741b9e7f4ebbd6df3c, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: GFSX_Brain
   TeamId: 0
   m_UseChildSensors: 1
@@ -620,7 +624,7 @@ MonoBehaviour:
   trackController: {fileID: 2576276022044907462}
   sensors: {fileID: 4457247928500194201}
   gripper: {fileID: 7350710668530015963}
-  cameraSensor: {fileID: 3602958851195469796}
+  visionSource: {fileID: 3602958851195469796}
   cameraPan: {fileID: 1322264039066847826}
   mazeGenerator: {fileID: 0}
   rewardSettings:
