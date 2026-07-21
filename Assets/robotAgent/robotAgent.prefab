@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 4724713510619205487}
   - component: {fileID: 3602958851195469796}
   - component: {fileID: 3113394068843074376}
+  - component: {fileID: 3922666002750388571}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -262,6 +263,23 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &3922666002750388571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 539130390073907312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95e9bba0e8e1f80438d151617fb70706, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RealVision
+  udpPort: 5005
+  useYOLO: 0
+  normalizedAngle: 0
+  normalizedDistance: 0
+  seesBall: 0
 --- !u!1 &980265386205999793
 GameObject:
   m_ObjectHideFlags: 0
@@ -422,6 +440,7 @@ GameObject:
   - component: {fileID: 65196901226264573}
   - component: {fileID: 6864108417961960436}
   - component: {fileID: 3296502454171463185}
+  - component: {fileID: 1850594450241244351}
   m_Layer: 0
   m_Name: robotAgent
   m_TagString: Untagged
@@ -557,7 +576,7 @@ MonoBehaviour:
   gas: 0
   steer: 0
   manualControl: 0
-  useRealRobot: 0
+  useRealRobot: 1
   rosBridge: {fileID: 0}
 --- !u!114 &65196901226264573
 MonoBehaviour:
@@ -627,6 +646,7 @@ MonoBehaviour:
   visionSource: {fileID: 3602958851195469796}
   cameraPan: {fileID: 1322264039066847826}
   mazeGenerator: {fileID: 0}
+  useRealRobot: 1
   rewardSettings:
     stepPenalty: -0.0005
     distanceRewardMultiplier: 0.2
@@ -640,6 +660,23 @@ MonoBehaviour:
     fallPenalty: -2
     boxCollisionPenalty: -0.05
     boxPushPenalty: -0.02
+--- !u!114 &1850594450241244351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1207438151482716248}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95e9bba0e8e1f80438d151617fb70706, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RealVision
+  udpPort: 5005
+  useYOLO: 0
+  normalizedAngle: 0
+  normalizedDistance: 0
+  seesBall: 0
 --- !u!1 &1917713898052067012
 GameObject:
   m_ObjectHideFlags: 0
