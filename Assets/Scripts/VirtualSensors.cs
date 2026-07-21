@@ -14,7 +14,8 @@ public class VirtualSensors : MonoBehaviour
     public Transform rightIRPoint;
     public Transform gripperIRPoint;
 
-
+    [Header("Real robot?")]
+    public bool useRealRobot = false;
     [Header("Ultrasonic")]
     public float ultrasonicRange = 2.0f;
     public int ultrasonicRays = 7;
@@ -59,6 +60,12 @@ public class VirtualSensors : MonoBehaviour
 
     void Update()
     {
+        if (useRealRobot)
+        {
+            // В режиме реального робота симуляция лучей отключается.
+            // Данные будут записываться напрямую из ROSBridge через подписку.
+            return;
+        }
         ultrasonic = ReadUltrasonic();
 
         leftIR = ReadIR(leftIRPoint);
