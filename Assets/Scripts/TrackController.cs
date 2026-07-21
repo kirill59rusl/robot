@@ -63,6 +63,9 @@ public class TrackController : MonoBehaviour
     [Header("Команды (-1...1)")]
     public float gas;
     public float steer;
+    [Header("Управление")]
+    [Tooltip("Включай только для ручного теста WASD. В инференсе/обучении — выключено.")]
+    public bool manualControl = false;
 
     [Header("ROS")]
     public bool useRealRobot = false;
@@ -105,6 +108,7 @@ public class TrackController : MonoBehaviour
 
     private void Update()
     {
+        if (manualControl)
         ReadKeyboard();
     }
 

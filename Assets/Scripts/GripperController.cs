@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -20,7 +21,11 @@ public class GripperController : MonoBehaviour
 
     public bool gripperIR;
 
-
+    [Header("Use Real Robot")]
+    public bool useRealRobot = false;
+    [Header("Управление")]
+    [Tooltip("Включай только для ручного теста WASD. В инференсе/обучении — выключено.")]
+    public bool manualControl = false;
 
     private GameObject heldBall;
 
@@ -32,9 +37,17 @@ public class GripperController : MonoBehaviour
 
     void Update()
     {
-
+        // Отключаем локальный Update, если работаем через ROS на реальном роботе
+        if (useRealRobot)
+        {
+            UpdateGripperIRReal();
+            return;
+        }
         UpdateGripperIR();
 
+
+        if (!manualControl || Keyboard.current == null)
+            return;
 
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
@@ -52,6 +65,16 @@ public class GripperController : MonoBehaviour
     }
 
 
+
+    void UpdateGripperIRReal()
+    {
+        var sensors = GetComponent<VirtualSensors>();
+        if (sensors != null)
+        {
+            // Если расстояние от ИК-датчика клешни близко к минимуму, считаем, что объект обнаружен
+            gripperIR = sensors.gripperIR < (sensors.gripperRange * 0.5f);
+        }
+    }
 
 
 

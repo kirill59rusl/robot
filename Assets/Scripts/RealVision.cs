@@ -16,7 +16,7 @@ public class YoloDataPacket
     public float h;          // Высота bounding box
 }
 
-public class RealVision : MonoBehaviour
+public class RealVision : MonoBehaviour, IVision
 {
     [Header("Настройки сети")]
     public int udpPort = 5005;
@@ -26,6 +26,10 @@ public class RealVision : MonoBehaviour
     public float normalizedAngle;
     public float normalizedDistance;
     public bool seesBall;
+
+    bool IVision.seesBall => seesBall;
+    float IVision.normalizedAngle => normalizedAngle;
+    float IVision.normalizedDistance => normalizedDistance;
 
     private CancellationTokenSource cts;
     private ConcurrentQueue<YoloDataPacket> udpQueue = new ConcurrentQueue<YoloDataPacket>();
