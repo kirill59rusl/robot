@@ -76,25 +76,18 @@ public class RobotBrain : Agent
         }
 
         // --- Vision (IVision: SimulatedYoloCamera или RealVision) ---
-        if (visionSource == null)
-        {
-            // автопоиск запасного варианта, если в инспекторе не назначено
-            visionSource = GetComponentInChildren<SimulatedYoloCamera>() as MonoBehaviour;
 
-            if (visionSource == null)
-                visionSource = GetComponentInChildren<RealVision>() as MonoBehaviour;
-        }
         if (!useRealRobot)
-        visionSource = GetComponentInChildren<SimulatedYoloCamera>() as MonoBehaviour;
-
-        if (visionSource == null)
+        {
+            visionSource = GetComponentInChildren<SimulatedYoloCamera>() as MonoBehaviour;
+            Debug.LogWarning("Vision is simulated!");
+        }
+        else
         {
             visionSource = GetComponentInChildren<RealVision>() as MonoBehaviour;
-            if (!useRealRobot)
-                Debug.LogError("Не нашёл SimulatedYoloCamera :(.");
-            else
-                Debug.LogWarning("Сейчас идёт реальный робот.");
+            Debug.LogWarning("Vision is real!");
         }
+        if (visionSource == null) Debug.LogWarning("Vision not found!");
 
         cameraSensor = visionSource as IVision;
 
